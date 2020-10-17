@@ -3,6 +3,7 @@ __author__ = 'akashjeez'
 import os, sys, re, math, json, time
 import random, string, base64, calendar
 import requests, pafy, qrcode, hashlib, emojis
+import nltk
 from datetime import datetime, timedelta
 from io import BytesIO, TextIOWrapper
 from fake_useragent import UserAgent
@@ -20,13 +21,18 @@ st.beta_set_page_config(layout = 'wide')
 
 st.title('Ak@$h😎J€€Z')
 
+## Download the Wordnet Package from NLTK.
+nltk.download('wordnet')
+
 #----------------------------------------------------------------------------------------------------------------------#
 
 CATEGORIES_LIST: list = ['Age Calculator', 'Python Tutorial', 'Google Translator', 'CoronaVirus Stats',
 	'Stock Ticker', 'Urban Dictionary', 'Best Poetries', 'YouTube Downloader', 'Cloud Market Cost', 
 	'AWS Cloud Cost', 'National Today', 'Google News', 'Other Tools', 'World Countries', 'Song Lyrics',
 	'Text Analysis', 'Emojis Search', 'Microsoft Learn', 'Cricket IPL Stats', 'ICC Cricket World Cup Stats',
-	'ICC Cricket Stats', 'Weather Report', 'Open Trivia', 'Proxy List', ]
+	'ICC Cricket Stats', 'Weather Report', 'Open Trivia', 'Proxy List', 'Movie Rankings', 'Online Radio',
+	'GitHub Repository', 'TV Show Search', 'Job Portal', 'Google Map Search', 'Movie Search', 'Crypto Currency',
+	]
 CATEGORIES_LIST.sort()
 
 LANGUAGES: dict = {'Afrikaans': 'af', 'Albanian': 'sq', 'Amharic': 'am', 'Arabic': 'ar', 'Armenian': 'hy', 'Azerbaijani': 'az', 
@@ -145,7 +151,8 @@ def EXECUTE_MAIN() -> None:
 
 	st.sidebar.subheader('About Me')
 	st.sidebar.info('''
-		Hi there, I am AkashJeez, I Love Coding and Racing :) \n
+		Hi there, I am AkashJeez, \n 
+		I Love Coding and Racing :) \n
 		Feel Free to Reach Out to Me Via \n
 		[ << Website >> ] ( https://akashjeez.herokuapp.com/ ) \n
 		[ << Blogspot >> ] ( https://akashjeez.blogspot.com/ ) \n
@@ -754,6 +761,194 @@ def EXECUTE_MAIN() -> None:
 				param_2: list = col_2.multiselect(label = f'Select { param_1 }', options = sub_params, default = sub_params )
 				st.markdown( body = Excel_Downloader( dataset[ dataset[ param_1 ].isin( param_2 ) ] ), unsafe_allow_html = True)
 				st.dataframe( data = dataset[ dataset[ param_1 ].isin( param_2 ) ] )
+		except Exception as ex:
+			st.error(f'\n ** Error: {ex} **')
+
+	elif CATEGORY == 'Movie Rankings':
+		try:
+			st.subheader('** Movie Rankings **')
+			BASE_URL = 'https://boxofficemojo.com'
+			st.write('\n ** Top Lifetime Gross **')
+			st.dataframe( data = pandas.read_html(f'{BASE_URL}/chart/top_lifetime_gross/')[0] )
+			st.write('\n ** Top Daily Gross **')
+			st.dataframe( data = pandas.read_html(f'{BASE_URL}/chart/release_top_daily_gross/')[0] )
+			st.write('\n ** Show Down **')
+			st.dataframe( data = pandas.read_html(f'{BASE_URL}/showdown/')[0] )
+			st.write('\n ** WorldWide Box Office **')
+			st.dataframe( data = pandas.read_html(f'{BASE_URL}/year/world/{datetime.now().year}/')[0] )
+			st.write('\n ** Brand **')
+			st.dataframe( data = pandas.read_html(f'{BASE_URL}/brand/')[0] )
+			st.write('\n ** Genre **')
+			st.dataframe( data = pandas.read_html(f'{BASE_URL}/genre/')[0] )
+			st.write('\n ** Franchise **')
+			st.dataframe( data = pandas.read_html(f'{BASE_URL}/franchise/')[0] )
+		except Exception as ex:
+			st.error(f'\n ** Error: {ex} **')
+
+	elif CATEGORY == 'Online Radio':
+		try:
+			st.subheader('** Online Radio **')
+			col_1, col_2 = st.beta_columns((2, 2))
+			BASE_URL = random.choice( [ f'https://{data}.api.radio-browser.info' for data in ('de1', 'fr1', 'nl1') ])
+			countries = requests.get(f'{BASE_URL}/json/countries')
+			countries: list = [ data['name'] for data in countries.json() if len(data['name']) < 20 ]
+			country: str = col_1.selectbox(label = 'Select Country', options = countries )
+			response = requests.get(f'{BASE_URL}/json/stations/bycountry/{country}')
+			languages: list = [ data['language'] for data in response.json() if len(data['language']) > 1 ]
+			lang_name: str = col_2.selectbox(label = 'Select Language', options = list(set(languages)) )
+			for data in response.json():
+				if data['language'] == lang_name:
+					with st.beta_expander(label = f" Name = { data.get('name', 'TBD') } ", expanded = False):
+						st.write(f"** Name = ** { data.get('name', 'TBD') } ")
+						st.write(f"** Country / Language = ** { data.get('country', 'TBD') } / { data.get('language', 'TBD') } ")
+						st.audio( data = data.get('url', 'TBD'), format = 'audio/mpeg' )
+		except Exception as ex:
+			st.error(f'\n ** Error: { ex } **')
+
+	elif CATEGORY == 'GitHub Repository':
+		try:
+			st.subheader('** GitHub Repository **')
+			username = st.text_input(label = 'Enter GitHub Username', value = 'akashjeez')
+			response = requests.get(f'https://api.github.com/users/{username.lower()}').json()
+			st.markdown( f"<img class = 'rounded-circle article-img' src = '{response.get('avatar_url', 'TBD')}' \
+				width = 200 height = 200>", unsafe_allow_html = True )
+			st.write(f"** GitHub ID : ** {response.get('id', 'TBD')} ")
+			st.write(f"** GitHub User Full Name : ** {response.get('name', 'TBD')} ")
+			st.write(f"** Account Created : ** { datetime.strptime(response['created_at'], '%Y-%m-%dT%H:%M:%S%fZ').strftime('%d-%m-%Y') } ")
+			st.write(f"** GitHub User URL : ** { response.get('html_url', 'TBD') } ")
+			st.write(f"** Repositories Count : ** {response.get('public_repos', 'TBD')} ")
+			st.write(f"** GitHub User URL : ** { response.get('repos_url', 'TBD') } ")
+			st.subheader("\n List Repositories : ")
+			for data in requests.get(f"https://api.github.com/users/{username.lower()}/repos").json():
+				with st.beta_expander(label = f" Repository Name = { data.get('name', 'TBD') } ", expanded = False):
+					st.write(f"** Repository ID : ** {data.get('id', 'TBD')} ")
+					st.write(f"** Repository Name : ** {data.get('name', 'TBD')} ")
+					st.write(f"** Repository Full Name : ** {data.get('full_name', 'TBD')} ")
+					st.write(f"** Language Used : ** {data.get('language', 'TBD')} ")
+					st.write(f"** Repository URL : ** {data.get('html_url', 'TBD')} ")
+					st.write(f"** Repository Description : ** {data.get('description', 'TBD')} ")
+					st.write(f"** Repository Created Date : ** {datetime.strptime(data['created_at'], '%Y-%m-%dT%H:%M:%S%fZ').strftime('%d-%m-%Y')} ")
+		except Exception as ex:
+			st.error(f'\n ** Error: {ex} **')
+
+	elif CATEGORY == 'TV Show Search':
+		try:
+			st.subheader('** TV Show Search **')
+			show_name = st.text_input(label = 'Enter TV Show Name', value = 'Arrow')
+			response = requests.get(f"http://api.tvmaze.com/search/shows?q={show_name.replace(' ','+')}")
+			for data in response.json():
+				with st.beta_expander(label = f" Name = { data['show'].get('name', 'TBD') } ", expanded = False):
+					data = data.get('show', 'TBD')
+					st.markdown( f"<img class = 'rounded-circle article-img' src = '{data['image']['medium']}' \
+						width = 200 height = 200>", unsafe_allow_html = True )
+					st.write(f" ** Name : ** { data.get('name', 'TBD') } ")
+					st.write(f" ** Type : ** { data.get('type', 'TBD') } ")
+					st.write(f" ** Language : ** { data.get('language', 'TBD') } ")
+					st.write(f" ** Genres : ** { data.get('genres', 'TBD') } ")
+					st.write(f" ** Country : ** {data['network']['country']['name']} - {data['network']['country']['timezone']} ")
+					st.write(f" ** IMDB ID : ** { data.get('externals', 'TBD').get('imdb', 'TBD') } ")
+					st.write(f" ** Summary : ** { data.get('summary', 'TBD') } ")
+		except Exception as ex:
+			st.error(f'\n ** Error: {ex} **')
+
+	elif CATEGORY == 'Job Portal':
+		try:
+			st.subheader('** Job Portal **')
+			keyword = st.text_input(label = 'Enter Keyword', value = 'Python')
+			response = requests.get( f'https://jobs.github.com/positions.json?title={keyword.lower()}' )
+			for data in response.json():
+				with st.beta_expander(label = f" Title = { data.get('title', 'TBD') } ", expanded = False):
+					st.markdown( f"<img class = 'rounded-circle article-img' src = '{data.get('company_logo', 'TBD')}' \
+						width = 200 height = 200>", unsafe_allow_html = True )
+					st.write(f"** Job Title : ** { data.get('title', 'TBD') } ")
+					st.write(f"** Job Location : ** { data.get('location', 'TBD') } ")
+					st.write(f"** Job Company : ** { data.get('company', 'TBD') } ")
+					st.write(f"** Company URL : ** { data.get('company_url', 'TBD') } ")
+					st.write(f"** Apply URL : ** { data.get('url', 'TBD') } ")
+					st.write(f"** Job Type : ** { data.get('type', 'TBD') } ")
+					st.write(f"** Job Posted Date : ** { data.get('created_at', 'TBD') } ")
+					st.write(f"** Job Description : ** { data.get('description', 'TBD') } ")
+		except Exception as ex:
+			st.error(f'\n ** Error: {ex} **')
+
+	elif CATEGORY == 'Google Map Search':
+		try:
+			st.subheader('** Google Map Search **')
+			location: str = st.text_input(label = 'Enter Location Name', value = 'Chennai')
+			URL: str = f'https://google.com/maps/embed/v1/place?q={location}&key=AIzaSyAMAkoV7402tDGkBtP36pfGb4BFqXtq9QI'
+			st.markdown( f'<iframe width = 600 height = 450 frameborder = 0 style=border:0 src={ URL } \
+				allowfullscreen> </iframe>', unsafe_allow_html = True )
+		except Exception as ex:
+			st.error(f'\n ** Error: { ex } **')
+
+	elif CATEGORY == 'Movie Search':
+		try:
+			st.subheader('** Movie Search **')
+			movie_name = st.text_input(label = 'Enter Movie Name', value = 'Jobs')
+			dataset = requests.get(f'http://omdbapi.com/?apikey=80440342&t={movie_name}').json()
+			if 'Error' not in dataset.keys():
+				st.markdown( f"<img class = 'rounded-circle article-img' src = '{dataset.get('Poster', 'TBD') }' \
+					width = 200 height = 200>", unsafe_allow_html = True )
+				st.write(f" ** \n Movie Name : ** { dataset.get('Title', 'TBD') } ")
+				st.write(f" ** Movie Year Released : ** { dataset.get('Year', 'TBD') } ")
+				st.write(f" ** Movie Rated : ** { dataset.get('Rated', 'TBD') } ")
+				st.write(f" ** Movie Released Date : ** { dataset.get('Released', 'TBD') } ")
+				st.write(f" ** Movie Runtime : ** { dataset.get('Runtime', 'TBD') } ")
+				st.write(f" ** Movie Genre : ** { dataset.get('Genre', 'TBD') } ")
+				st.write(f" ** Movie Director : ** { dataset.get('Director', 'TBD') } ")
+				st.write(f" ** Movie Writer : ** { dataset.get('Writer', 'TBD') } ")
+				st.write(f" ** Movie Actors : ** { dataset.get('Actors', 'TBD') } ")
+				st.write(f" ** Movie Plot : ** { dataset.get('Plot', 'TBD') } ")
+				st.write(f" ** Movie Language : ** { dataset.get('Language', 'TBD') } ")
+				st.write(f" ** Movie Country : ** { dataset.get('Country', 'TBD') } ")
+				st.write(f" ** Movie Awards : ** { dataset.get('Awards', 'TBD') } ")
+				st.write(f" ** IMDB Rating for this Movie : ** { dataset.get('imdbRating', 'TBD') } ")
+				st.write(f" ** IMDB Votes for this Movie : ** { dataset.get('imdbVotes', 'TBD') } ")
+				st.write(f" ** IMDB ID for this Movie : ** { dataset.get('imdbID', 'TBD') } ")
+				st.write(f" ** Type : ** { dataset.get('Type', 'TBD') } ")
+				st.write(f" ** Box Office : ** { dataset.get('BoxOffice', 'TBD') } ")
+				st.write(f" ** Movie Production : ** { dataset.get('Production', 'TBD') } ")
+				st.write(f" ** Movie Website : ** { dataset.get('Website', 'TBD') } ")
+				st.write(f" ** Movie Ratings : ** { dataset.get('Ratings', 'TBD') } ")  
+		except Exception as ex:
+			st.error(f'\n ** Error: { ex } **')
+
+	elif CATEGORY == 'Crypto Currency':
+		try:
+			st.subheader('** Crypto Currency **')
+			st.write('CoinMarketCap: Cryptocurrency Prices, Charts And Market..')
+			col_1, col_2, col_3, col_4 = st.beta_columns((2, 2, 2, 2))
+			BASE_URL = 'https://coinmarketcap.com'
+			filter_x: str = col_1.selectbox(label = 'Crypto Currencies / Crypto Exchanges ?', 
+				options = ('Crypto Currencies', 'Crypto Exchanges'))
+			if filter_x == 'Crypto Currencies':
+				currencies = pandas.read_html( BASE_URL + 'all/views/all/' )[2]	
+				st.markdown( body = Excel_Downloader( currencies ), unsafe_allow_html = True)
+				if st.checkbox('Wanna See the Crypto Currencies List ?'):
+					st.dataframe( data = currencies )
+				currency = col_2.selectbox(label = 'Select Crypto Currency', options = list(currencies.Name.unique()) )
+				start_date = col_3.date_input('Start Date', (datetime.now() - timedelta(days = 30)) )
+				end_date = col_4.date_input('End Date', datetime.now() )
+				st.write(f'** Selected Currency : ** { currency } | Start Date : { start_date } | End Date : { end_date }')
+				currency, start_date, end_date = currency.lower().replace(' ', '-'), start_date.strftime('%Y%m%d'), end_date.strftime('%Y%m%d')
+				request_url = f"{BASE_URL}/currencies/{currency}/historical-data/?start={start_date}&end={end_date}"
+				dataset_1, dataset_2 = pandas.read_html( request_url )[2, 4]
+				dataset_1['Date'] = pandas.to_datetime( dataset_1.Date )
+				dataset_1.set_index('Date', inplace = True)
+				st.markdown( body = Excel_Downloader( dataset_1 ), unsafe_allow_html = True)
+				st.dataframe( data = dataset_1.style.highlight_max(axis = 0) )
+				st.write(f'** { currency } Statistics **')
+				st.dataframe( data = dataset_2 )
+			elif filter_x == 'Crypto Exchanges':
+				exchanges = pandas.read_html(f'{BASE_URL}/rankings/exchanges/')[2]
+				st.markdown( body = Excel_Downloader( exchanges ), unsafe_allow_html = True)
+				if st.checkbox('Wanna See the Crypto Currencies Exchange List ?'):
+					st.dataframe( data = exchanges )
+				exchange_name = col_2.selectbox(label = 'Select Crypto Currency Exchange', options = list(exchanges.Name.unique()) )
+				exchange_name = exchange.lower().replace(' ', '-').replace('.', '-')
+				dataset = pandas.read_html(f'{BASE_URL}/exchanges/{exchange_name}')[2]
+				st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
+				st.dataframe( data = dataset )
 		except Exception as ex:
 			st.error(f'\n ** Error: {ex} **')
 

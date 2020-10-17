@@ -2,6 +2,7 @@ fake_useragent
 emojis
 googlenews
 googletrans
+nltk
 numpy
 pafy
 pandas
