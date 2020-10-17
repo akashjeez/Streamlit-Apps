@@ -1,6 +1,13 @@
+fake_useragent
+emojis
+googlenews
 googletrans
 numpy
+pafy
 pandas
+qrcode
 requests
 streamlit
+textblob
 yfinance
+youtube-dl
