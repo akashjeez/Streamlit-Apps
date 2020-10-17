@@ -19,7 +19,7 @@ st.title('Ak@$h😎J€€Z')
 #----------------------------------------------------------------------------------------------------------------------#
 
 CATEGORIES_LIST: list = ['Age Calculator', 'Python Tutorial', 'Google Translator', 'CoronaVirus Stats',
-	'Stock Ticker', ]
+	'Stock Ticker', 'Urban Dictionary', ]
 CATEGORIES_LIST.sort()
 
 LANGUAGES: dict = {'Afrikaans': 'af', 'Albanian': 'sq', 'Amharic': 'am', 'Arabic': 'ar', 'Armenian': 'hy', 'Azerbaijani': 'az', 
@@ -212,6 +212,22 @@ def EXECUTE_MAIN() -> None:
 			dataset.set_index( keys = 'Date', inplace = True )
 			parameters = st.multiselect(label = 'Select Parameters', options = list(dataset.columns), default = ['Close'], )
 			st.line_chart( dataset[parameters] if len(parameters) > 0 else chart_data['Close'] )
+		except Exception as ex:
+			st.write(f'\n ** Error : { ex } **')
+
+	elif CATEGORY == 'Urban Dictionary':
+		try:
+			st.subheader('** Urban Dictionary **')
+			st.write('Urban Dictionary is a CrowdSourced Online Dictionary For Slang Words and Phrases.')
+			keyword: str = st.text_input(label = 'Enter Keyword', value = 'Ghetto')
+			response = requests.get(f'https://api.urbandictionary.com/v0/define?term={keyword.lower()}')
+			for data in response.json()['list']:
+				st.write(f"** Word : ** { data.get('word', 'TBD') } ")
+				st.write(f"** Definition : ** { data.get('definition', 'TBD') } ")
+				st.write(f"** Example : ** { data.get('example', 'TBD') } ")
+				st.write(f"** Thumps Up : ** { data.get('thumbs_up', 'TBD') } ")
+				st.write(f"** Thumps Down : ** { data.get('thumbs_down', 'TBD') } ")
+				st.write('*' * 100)
 		except Exception as ex:
 			st.write(f'\n ** Error : { ex } **')
 
