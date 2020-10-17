@@ -916,7 +916,7 @@ def EXECUTE_MAIN() -> None:
 	elif CATEGORY == 'Crypto Currency':
 		try:
 			st.subheader('** Crypto Currency **')
-			st.write('CoinMarketCap: Cryptocurrency Prices, Charts And Market..')
+			st.write('CoinMarketCap: Cryptocurrency Prices, Charts And Market.')
 			col_1, col_2, col_3, col_4 = st.beta_columns((2, 2, 2, 2))
 			BASE_URL = 'https://coinmarketcap.com'
 			filter_x: str = col_1.selectbox(label = 'Crypto Currencies / Crypto Exchanges ?', 
@@ -924,8 +924,7 @@ def EXECUTE_MAIN() -> None:
 			if filter_x == 'Crypto Currencies':
 				currencies = pandas.read_html( BASE_URL + '/all/views/all/' )[2]	
 				st.markdown( body = Excel_Downloader( currencies ), unsafe_allow_html = True)
-				if st.checkbox('Wanna See the Crypto Currencies List ?'):
-					st.dataframe( data = currencies )
+				st.dataframe( data = currencies )
 				currency = col_2.selectbox(label = 'Select Crypto Currency', options = list(currencies.Name.unique()) )
 				start_date = col_3.date_input('Start Date', (datetime.now() - timedelta(days = 30)) )
 				end_date = col_4.date_input('End Date', datetime.now() )
@@ -936,19 +935,22 @@ def EXECUTE_MAIN() -> None:
 				dataset_1['Date'] = pandas.to_datetime( dataset_1.Date )
 				dataset_1.set_index('Date', inplace = True)
 				st.markdown( body = Excel_Downloader( dataset_1 ), unsafe_allow_html = True)
-				st.dataframe( data = dataset_1.style.highlight_max(axis = 0) )
-				st.write(f'** { currency } Statistics **')
+				st.dataframe( data = dataset_1.style.highlight_max( axis = 0 ) )
+				st.write(f'** { currency.upper() } Statistics **')
+				st.markdown( body = Excel_Downloader( dataset_2 ), unsafe_allow_html = True)
 				st.dataframe( data = dataset_2 )
 			elif filter_x == 'Crypto Exchanges':
-				exchanges = pandas.read_html(f'{BASE_URL}/rankings/exchanges/')[2]
+				exchanges = pandas.read_html(f'{BASE_URL}/rankings/exchanges/')[0]
+				exchanges['Name'] = exchanges['Name'].str.replace(r'\d+', '')
+				for column_name in ['#', 'Web Traffic Factor', 'Avg. Liquidity']:
+					exchanges[column_name] = exchanges[column_name].fillna(0.0).astype(int)
 				st.markdown( body = Excel_Downloader( exchanges ), unsafe_allow_html = True)
-				if st.checkbox('Wanna See the Crypto Currencies Exchange List ?'):
-					st.dataframe( data = exchanges )
+				st.dataframe( data = exchanges.style.highlight_max( axis = 0 ) )
 				exchange_name = col_2.selectbox(label = 'Select Crypto Currency Exchange', options = list(exchanges.Name.unique()) )
-				exchange_name = exchange.lower().replace(' ', '-').replace('.', '-')
-				dataset = pandas.read_html(f'{BASE_URL}/exchanges/{exchange_name}')[2]
+				st.write(f'** { exchange_name.upper() } Statistics **')
+				dataset = pandas.read_html(f"{BASE_URL}/exchanges/{exchange_name.lower().replace(' ', '-').replace('.', '-')}")[2]
 				st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
-				st.dataframe( data = dataset )
+				st.dataframe( data = dataset.style.highlight_max( axis = 0 ) )
 		except Exception as ex:
 			st.error(f'\n ** Error: {ex} **')
 
