@@ -9,5 +9,6 @@ qrcode
 requests
 streamlit
 textblob
+xlsxwriter
 yfinance
 youtube-dl
