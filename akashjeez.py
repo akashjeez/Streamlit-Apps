@@ -932,7 +932,7 @@ def EXECUTE_MAIN() -> None:
 				st.write(f'** Selected Currency : ** { currency } | Start Date : { start_date } | End Date : { end_date }')
 				currency, start_date, end_date = currency.lower().replace(' ', '-'), start_date.strftime('%Y%m%d'), end_date.strftime('%Y%m%d')
 				request_url = f"{BASE_URL}/currencies/{currency}/historical-data/?start={start_date}&end={end_date}"
-				dataset_1, dataset_2 = pandas.read_html( request_url )[2, 4]
+				dataset_1, dataset_2 = pandas.read_html( request_url )[2], pandas.read_html( request_url )[3]
 				dataset_1['Date'] = pandas.to_datetime( dataset_1.Date )
 				dataset_1.set_index('Date', inplace = True)
 				st.markdown( body = Excel_Downloader( dataset_1 ), unsafe_allow_html = True)
