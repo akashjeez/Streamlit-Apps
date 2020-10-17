@@ -46,7 +46,7 @@ def execute_main() -> None:
 	if CATEGORY == 'Age Calculator':
 		try:
 			st.subheader('** Age Calculator **')
-			input_date = st.date_input(label = 'Your Date-of-Birth', value = (datetime.today() - timedelta(days = 36500)) )
+			input_date = st.date_input(label = 'Your Date-of-Birth', value = (datetime.today() - timedelta(days = 7300)) )
 			result = round( ( ( datetime.now().date() - input_date ).days / 365 ), 2)
 			st.write(f'\n ** Your Age is { result } ** ')
 		except Exception as ex:
