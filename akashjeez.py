@@ -922,7 +922,7 @@ def EXECUTE_MAIN() -> None:
 			filter_x: str = col_1.selectbox(label = 'Crypto Currencies / Crypto Exchanges ?', 
 				options = ('Crypto Currencies', 'Crypto Exchanges'))
 			if filter_x == 'Crypto Currencies':
-				currencies = pandas.read_html( BASE_URL + 'all/views/all/' )[2]	
+				currencies = pandas.read_html( BASE_URL + '/all/views/all/' )[2]	
 				st.markdown( body = Excel_Downloader( currencies ), unsafe_allow_html = True)
 				if st.checkbox('Wanna See the Crypto Currencies List ?'):
 					st.dataframe( data = currencies )
