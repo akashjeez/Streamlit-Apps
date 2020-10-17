@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from io import BytesIO, TextIOWrapper
 import pandas, numpy
 import streamlit as st
+import yfinance as yf
 from googletrans import Translator
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -17,7 +18,8 @@ st.title('Ak@$h😎J€€Z')
 
 #----------------------------------------------------------------------------------------------------------------------#
 
-CATEGORIES_LIST: list = ['Age Calculator', 'Python Tutorial', 'Google Translator', 'CoronaVirus Stats']
+CATEGORIES_LIST: list = ['Age Calculator', 'Python Tutorial', 'Google Translator', 'CoronaVirus Stats',
+	'Stock Ticker', ]
 CATEGORIES_LIST.sort()
 
 LANGUAGES: dict = {'Afrikaans': 'af', 'Albanian': 'sq', 'Amharic': 'am', 'Arabic': 'ar', 'Armenian': 'hy', 'Azerbaijani': 'az', 
@@ -54,7 +56,7 @@ def CoronaVirus_Stats() -> pandas.DataFrame:
 	covid_data = pandas.read_csv(f'{BASE_URL}/ecdc/full_data.csv')
 	population_data = pandas.read_csv(f'{BASE_URL}/ecdc/locations.csv')
 	dataset = pandas.merge(covid_data, population_data, on = 'location', how = 'left')
-	dataset = dataset[ dataset.population_year == 2020.0]
+	dataset = dataset[ dataset.population_year == 2020.0 ]
 	dataset.date = pandas.to_datetime( dataset.date, infer_datetime_format = True)
 	dataset.drop(['countriesAndTerritories', 'population', 'population_year'], axis = 1, inplace = True)
 	return dataset
@@ -65,9 +67,9 @@ def EXECUTE_MAIN() -> None:
 	st.sidebar.subheader('Contribute')
 	st.sidebar.info('''
 		This is an Open Source Project and You are Very Welcome to Contribute 
-		Your Awesome Comments, Questions, Resources and Apps as \
-		[Issues] ( https://github.com/akashjeez/Streamlit-Apps/issues ) \
-		of or [Pull Requests] ( https://github.com/akashjeez/Streamlit-Apps/pulls ) \
+		Your Awesome Comments, Questions, Resources and Apps as
+		[Issues] ( https://github.com/akashjeez/Streamlit-Apps/issues )
+		of or [Pull Requests] ( https://github.com/akashjeez/Streamlit-Apps/pulls )
 		to the [Source Code] ( https://github.com/akashjeez/Streamlit-Apps ).
 	''')
 
@@ -91,7 +93,7 @@ def EXECUTE_MAIN() -> None:
 	if CATEGORY == 'Age Calculator':
 		try:
 			st.subheader('** Age Calculator **')
-			input_date = st.date_input(label = 'Your Date-of-Birth', value = (datetime.today() - timedelta(days = 18250)) )
+			input_date = st.date_input(label = 'Choose Date-of-Birth', value = (datetime.today() - timedelta(days = 18250)) )
 			result: float = round( ( ( datetime.now().date() - input_date ).days / 365 ), 2)
 			st.write(f'\n ** Your Age is { result } ** ')
 		except Exception as ex:
@@ -167,7 +169,7 @@ def EXECUTE_MAIN() -> None:
 					data_dump_1 = data_dump[ (data_dump.continent.isin( continents )) ]
 				dataset = data_dump_1[ (data_dump_1.date >= start_date) & (data_dump_1.date <= end_date) ]
 				st.write(f'** > Selected Date Range From ** { start_date } TO { end_date } ')
-				st.write(f'** Stats = ** Cases : { int(dataset.new_cases.sum()) } | Deaths : { int(dataset.new_deaths.sum()) } **')
+				st.write(f'** Stats = ** Cases : { int(dataset.new_cases.sum()) } | Deaths : { int(dataset.new_deaths.sum()) } ')
 				## Download Excel File
 				st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
@@ -187,6 +189,29 @@ def EXECUTE_MAIN() -> None:
 				## Show DataFrame & Map
 				st.dataframe( data = dataset )
 				st.map( data = dataset, zoom = 2)
+		except Exception as ex:
+			st.write(f'\n ** Error : { ex } **')
+
+	elif CATEGORY == 'Stock Ticker':
+		try:
+			st.subheader('** Stock Ticker **')
+			col_1, col_2, col_3 = st.beta_columns((2, 2, 2))
+			companies = pandas.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]
+			companies.rename(columns = {'Security': 'Company_Name', 'GICS Sector': 'Industry', 
+				'GICS Sub-Industry': 'Sub_Industry', 'Headquarters Location': 'Headquaters_Location'}, inplace = True)
+			companies = companies[['Symbol', 'Company_Name', 'Industry', 'Sub_Industry', 'Headquaters_Location']]
+			company = col_1.selectbox(label = 'Choose Company Name', options = list(set(companies.Company_Name.unique())) )
+			company_code = companies[ companies.Company_Name == company ].Symbol.values.tolist()[0].strip()
+			st.write(f'** Company Name | Code : ** { company.title() } | { company_code } ')
+			start_date: str = col_2.date_input(label = 'Start Date', value = (datetime.today() - timedelta(days = 30)) )
+			end_date: str = col_3.date_input(label = 'End Date', value = datetime.today() )
+			dataset = yf.download( tickers = company_code.upper(), start = start_date, end = end_date, progress = False )
+			st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
+			st.dataframe( data = dataset )
+			dataset.reset_index( inplace = True )
+			dataset.set_index( keys = 'Date', inplace = True )
+			parameters = st.multiselect(label = 'Select Parameters', options = list(dataset.columns), default = ['Close'], )
+			st.line_chart( dataset[parameters] if len(parameters) > 0 else chart_data['Close'] )
 		except Exception as ex:
 			st.write(f'\n ** Error : { ex } **')
 
