@@ -1,4 +1,5 @@
-streamlit
+googletrans
 numpy
 pandas
 requests
+streamlit
