@@ -2,14 +2,15 @@ __author__ = 'akashjeez'
 
 import os, sys, re, math, json, time
 import random, string, base64, calendar
-import requests, pafy, qrcode, hashlib, emojis
-import nltk
+import requests, qrcode, hashlib, emojis
+import pafy, nltk
 from datetime import datetime, timedelta
 from io import BytesIO, TextIOWrapper
 from fake_useragent import UserAgent
 import pandas, numpy
 import streamlit as st
 import yfinance as yf
+from lxml import html
 from GoogleNews import GoogleNews
 from googletrans import Translator
 from textblob import TextBlob, Word
@@ -26,13 +27,12 @@ nltk.download('wordnet')
 
 #----------------------------------------------------------------------------------------------------------------------#
 
-CATEGORIES_LIST: list = ['Age Calculator', 'Python Tutorial', 'Google Translator', 'CoronaVirus Stats',
-	'Stock Ticker', 'Urban Dictionary', 'Best Poetries', 'YouTube Downloader', 'Cloud Market Cost', 
-	'AWS Cloud Cost', 'National Today', 'Google News', 'Other Tools', 'World Countries', 'Song Lyrics',
-	'Text Analysis', 'Emojis Search', 'Microsoft Learn', 'Cricket IPL Stats', 'ICC Cricket World Cup Stats',
-	'ICC Cricket Stats', 'Weather Report', 'Open Trivia', 'Proxy List', 'Movie Rankings', 'Online Radio',
-	'GitHub Repository', 'TV Show Search', 'Job Portal', 'Google Map Search', 'Movie Search', 'Crypto Currency',
-	]
+CATEGORIES_LIST: list = ['Age Calculator', 'Python Tutorial', 'Google Translator', 'CoronaVirus Stats', 'Stock Ticker', 
+	'Urban Dictionary', 'Best Poetries', 'YouTube Downloader', 'Cloud Market Cost', 'AWS Cloud Cost', 'National Today', 
+	'Google News', 'Other Tools', 'World Countries', 'Song Lyrics', 'Text Analysis', 'Emojis Search', 'Microsoft Learn', 
+	'Cricket IPL Stats', 'ICC Cricket World Cup Stats', 'ICC Cricket Stats', 'Weather Report', 'Open Trivia', 
+	'Proxy List', 'Movie Rankings', 'Online Radio', 'GitHub Repository', 'TV Show Search', 'Job Portal', 'Movie Search',
+	'Google Map Search', 'Crypto Currency', 'Python Packages', 'Social Media Stats' ]
 CATEGORIES_LIST.sort()
 
 LANGUAGES: dict = {'Afrikaans': 'af', 'Albanian': 'sq', 'Amharic': 'am', 'Arabic': 'ar', 'Armenian': 'hy', 'Azerbaijani': 'az', 
@@ -127,6 +127,7 @@ def Cloud_Market_Cost(provider: str) -> dict:
 					})
 	return dataset
 
+
 @st.cache
 def Proxy_List(urls: list) -> pandas.DataFrame:
 	headers = {'User-Agent': UserAgent().random}
@@ -136,6 +137,7 @@ def Proxy_List(urls: list) -> pandas.DataFrame:
 	dataset.drop_duplicates(['IP Address'], inplace = True)
 	dataset.dropna(inplace = True)
 	return dataset
+
 
 #----------------------------------------------------------------------------------------------------------------------#
 
@@ -151,8 +153,7 @@ def EXECUTE_MAIN() -> None:
 
 	st.sidebar.subheader('About Me')
 	st.sidebar.info('''
-		Hi there, I am AkashJeez, \n 
-		I Love Coding and Racing :) \n
+		Hi there, I am AkashJeez, Love Coding and Racing :) \
 		Feel Free to Reach Out to Me Via \n
 		[ << Website >> ] ( https://akashjeez.herokuapp.com/ ) \n
 		[ << Blogspot >> ] ( https://akashjeez.blogspot.com/ ) \n
@@ -226,7 +227,7 @@ def EXECUTE_MAIN() -> None:
 		try:
 			st.subheader('** CoronaVirus Stats **')
 			## Load the DataSet with Streamlit Cache.
-			filter_x: str = st.radio(label = 'Overview / Detailed Stats', options = ('Overiew Stats', 'Detailed Stats'))
+			filter_x: str = st.radio(label = 'Advanced Filter', options = ('Overiew Stats', 'Detailed Stats', 'Country India'))
 			if filter_x == 'Overiew Stats':
 				data_dump = CoronaVirus_Stats()
 				col_1, col_2, col_3, col_4 = st.beta_columns((2, 2, 2, 2))
@@ -247,8 +248,7 @@ def EXECUTE_MAIN() -> None:
 				dataset = data_dump_1[ (data_dump_1.date >= start_date) & (data_dump_1.date <= end_date) ]
 				st.write(f'** > Selected Date Range From ** { start_date } TO { end_date } ')
 				st.write(f'** Stats = ** Cases : { int(dataset.new_cases.sum()) } | Deaths : { int(dataset.new_deaths.sum()) } ')
-				## Download Excel File
-				st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
+				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 				chart_data = dataset[['date', 'new_cases', 'new_deaths', 'total_cases', 'total_deaths']]
 				chart_data.set_index('date', inplace = True)
@@ -262,10 +262,20 @@ def EXECUTE_MAIN() -> None:
 				dataset = data_dump if len(locations) == 0 else data_dump[ (data_dump.location.isin( locations )) ]
 				st.write('** Stats = ** Total Cases : {} | Total Deaths : {} | Total Recovered : {} '.format(
 					int(dataset.confirmed.sum()), int(dataset.dead.sum()), int(dataset.recovered.sum()) ))
-				st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
+				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				## Show DataFrame & Map
 				st.dataframe( data = dataset )
 				st.map( data = dataset, zoom = 2)
+			elif filter_x == 'Country India':
+				response = requests.get('https://api.rootnet.in/covid19-in/stats/latest').json()
+				dataset = pandas.DataFrame( response['data']['regional'] )
+				dataset.rename(columns = {'loc': 'State', 'totalConfirmed': 'Confirmed', 
+					'discharged': 'Recovered', 'deaths': 'Deaths'}, inplace = 'TRUE')
+				dataset = dataset[['State', 'Confirmed', 'Recovered', 'Deaths']]
+				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.write("** Stats = ** Total Cases : {} | Total Recovered : {} | Total Deaths : {}".\
+					format( int(dataset.Confirmed.sum()), int(dataset.Recovered.sum()), int(dataset.Deaths.sum()) ))
+				st.dataframe( data = dataset )
 		except Exception as ex:
 			st.write(f'\n ** Error : { ex } **')
 
@@ -953,6 +963,54 @@ def EXECUTE_MAIN() -> None:
 				st.dataframe( data = dataset.style.highlight_max( axis = 0 ) )
 		except Exception as ex:
 			st.error(f'\n ** Error: {ex} **')
+
+	elif CATEGORY == 'Python Packages':
+		try:
+			st.subheader('** Python Packages Search **')
+			dataset, BASE_URL = [], 'https://pypi.org'
+			tree = html.fromstring(requests.get(f'{BASE_URL}/simple').content)
+			input_package = st.text_input(label = 'Enter Python Package Name', value = 'akashjeez')
+			for package in tree.xpath('//a/text()'):
+				if input_package.lower() == package:
+						response = requests.get(f'{BASE_URL}/pypi/{package}/json/').json()
+						data_info, data_urls = response['info'], response['urls']
+						dataset.append({
+							'package_name': package.title(), 'package_url': data_info.get('package_url', 'TBD'),
+							'author': data_info.get('author', 'TBD'), 'author_email': data_info.get('author_email', 'TBD'),
+							'home_page': data_info.get('home_page', 'TBD'), 'project_url': data_info.get('project_url', 'TBD'),
+							'release_url': data_info.get('release_url', 'TBD'), 'summary': data_info.get('summary', 'TBD'),
+							'requires_python': data_info.get('requires_python', 'TBD'), 'version': data_info.get('version', 'TBD'),
+							'urls': [{
+								'filename': url.get('filename', 'TBD'), 'download_url': url.get('url',' TBD'),
+								'last_uploaded': datetime.strptime(url['upload_time'], '%Y-%m-%dT%H:%M:%S').strftime('%d-%b-%Y %I:%M %p')
+							} for url in data_urls], 'classifiers': data_info.get('classifiers', 'TBD'),
+						})
+			st.json( { 'count': len(dataset), 'data': dataset } )
+		except Exception as ex:
+			st.error(f'\n ** Error: { ex } **')
+
+	elif CATEGORY == 'Social Media Stats':
+		try:
+			st.subheader('** Social Media Stats **')
+			BASE_URL, year = 'https://kworb.net', datetime.now().year
+			st.write('** Most Liked Videos **')
+			st.dataframe( pandas.read_html(f'{BASE_URL}/youtube/topvideos_likes.html')[0] )
+			st.write('**  Most Disliked Videos **')
+			st.dataframe( pandas.read_html(f'{BASE_URL}/youtube/topvideos_dislikes.html')[0] )
+			st.write('**  Most Commented Videos **')
+			st.dataframe( pandas.read_html(f'{BASE_URL}/youtube/topvideos_comments.html')[0] )
+			st.write('**  Most Viewed Videos in 24 Hours **')
+			st.dataframe( pandas.read_html(f'{BASE_URL}/youtube/realtime_anglo.html')[0] )
+			st.write(f'** Most Viewed in Year {year} **')
+			st.dataframe( pandas.read_html(f'{BASE_URL}/youtube/topvideos{year}.html')[0] )
+			st.write(f'** Top Artist in Year {year} **')
+			st.dataframe( pandas.read_html(f'{BASE_URL}/youtube/topartists_{year}.html')[0] )
+			st.write('** Trending Videos **')
+			st.dataframe( pandas.read_html(f'{BASE_URL}/youtube/trending.html')[0] )
+			st.write('** Spotify Charts **')
+			st.dataframe( pandas.read_html(f'{BASE_URL}/spotify/country/global_daily.html')[0] )
+		except Exception as ex:
+			st.error(f'\n ** Error: { ex } **')
 
 
 #----------------------------------------------------------------------------------------------------------------------#
