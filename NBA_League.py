@@ -71,18 +71,14 @@ def List_NBA_Players(team_name: str) -> dict:
 			response = requests.get(f'{BASE_URL}/v1/players?page={i}').json()
 			for data in response['data']:
 				if data['team']['full_name'] == team_name:
-					data_dump: dict = {
+					dataset.append({
 						'Player_ID': data.get('id', 'TBD'),
 						'Player_Name': f"{ data.get('first_name', 'TBD') } {data.get('last_name', 'TBD') }",
 						'Position': data['position'] if 'position' in data.keys() else 'TBD',
-					}
-					if team := data['team']:
-						data_dump.update({
-							'Team_Code': team.get('abbreviation', 'TBD'), 'Team_City': team.get('city', 'TBD'),
-							'Team_Name': team.get('name', 'TBD'), 'Team_Full_Name': team.get('full_name', 'TBD'),
-							'Team_Conference': team.get('conference', 'TBD'), 'Team_Division': team.get('division', 'TBD'),
-						})
-					dataset.append( data_dump )
+						'Team_Code': data['team'].get('abbreviation', 'TBD'), 'Team_City': data['team'].get('city', 'TBD'),
+						'Team_Name': data['team'].get('name', 'TBD'), 'Team_Full_Name': data['team'].get('full_name', 'TBD'),
+						'Team_Conference': data['team'].get('conference', 'TBD'), 'Team_Division': data['team'].get('division', 'TBD'),
+					})
 		return { 'count' : len(dataset), 'data' : dataset }
 	except Exception as ex:
 		return { 'data' : { 'error' : ex } }
