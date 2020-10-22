@@ -993,8 +993,8 @@ def EXECUTE_MAIN() -> None:
 
 	st.write('*' * 100)
 
-	if MAIN_CATEGORY == 'MLB_League':
-		SUB_CATEGORY = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['MLB_League'])
+	if MAIN_CATEGORY == 'MLB League':
+		SUB_CATEGORY = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['MLB League'])
 
 		if SUB_CATEGORY == 'About MLB':
 			st.subheader('** About MLB **')
@@ -1199,8 +1199,8 @@ def EXECUTE_MAIN() -> None:
 				st.write(f'\n ** Error : { ex } **')
 
 
-	elif MAIN_CATEGORY == 'NBA_League':
-		SUB_CATEGORY = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['NBA_League'])
+	elif MAIN_CATEGORY == 'NBA League':
+		SUB_CATEGORY = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['NBA League'])
 
 		if SUB_CATEGORY == 'About NBA':
 			st.subheader('** About NBA **')
@@ -1349,8 +1349,8 @@ def EXECUTE_MAIN() -> None:
 				st.write(f'\n ** Error : { ex } **')
 
 
-	elif MAIN_CATEGORY == 'NFL_League':
-		SUB_CATEGORY = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['NFL_League'])
+	elif MAIN_CATEGORY == 'NFL League':
+		SUB_CATEGORY = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['NFL League'])
 
 		if SUB_CATEGORY == 'About NFL':
 			st.subheader('** About NFL **')
@@ -1386,9 +1386,9 @@ def EXECUTE_MAIN() -> None:
 				st.write(f'\n ** Error : { ex } **')
 
 
-	elif MAIN_CATEGORY == 'Cricket_IPL_Stats':
+	elif MAIN_CATEGORY == 'Cricket IPL Stats':
 		try:
-			SUB_CATEGORY = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['Cricket_IPL_Stats'])
+			SUB_CATEGORY = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['Cricket IPL Stats'])
 			options = ['all-time'] + [data for data in range(2008, datetime.now().year + 1)]
 			IPL_Category = col_3.selectbox(label = 'Select IPL Year / All-Time ?', options = options)
 			BASE_URL = f'{IPL_BASE_URL}/{IPL_Category}'
@@ -1519,9 +1519,9 @@ def EXECUTE_MAIN() -> None:
 				st.write(f'\n ** Error : { ex } **')
 
 
-	elif MAIN_CATEGORY == 'Cricket_ICC_Stats':
+	elif MAIN_CATEGORY == 'Cricket ICC Rankings':
 		try:
-			SUB_CATEGORY = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['Cricket_ICC_Stats'])
+			SUB_CATEGORY = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['Cricket ICC Rankings'])
 
 			if SUB_CATEGORY == 'Test Team Stats':
 				st.write('** Test Team Stats **')
@@ -1577,9 +1577,9 @@ def EXECUTE_MAIN() -> None:
 				st.write(f'\n ** Error : { ex } **')
 
 
-	elif MAIN_CATEGORY == 'Cricket_WC_Stats':
+	elif MAIN_CATEGORY == 'Cricket WC Stats':
 		try:
-			SUB_CATEGORY = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['Cricket_WC_Stats'])
+			SUB_CATEGORY = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['Cricket WC Stats'])
 
 			if SUB_CATEGORY == 'About Cricket World Cup':
 				st.write('** About Cricket World Cup **')
