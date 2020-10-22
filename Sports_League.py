@@ -1443,7 +1443,7 @@ def EXECUTE_MAIN() -> None:
 				dataset = pandas.read_html(f'{BASE_URL}/best-batting-strike-rate-innings')[0]
 
 			elif SUB_CATEGORY == 'Best Batting Average':
-				st.subheader('** est Batting Average **')	
+				st.subheader('** Best Batting Average **')	
 				dataset = pandas.read_html(f'{BASE_URL}/best-batting-average')[0]
 
 			elif SUB_CATEGORY == 'Most Fifties':

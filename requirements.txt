@@ -1,5 +1,6 @@
-fake_useragent
 emojis
+fake_useragent
+html5lib
 googlenews
 googletrans
 nltk
@@ -10,6 +11,7 @@ qrcode
 requests
 streamlit
 textblob
+xlrd
 xlsxwriter
 yfinance
 youtube-dl
