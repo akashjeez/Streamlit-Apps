@@ -5,8 +5,10 @@ googlenews
 googletrans
 nltk
 numpy
+opencv-python-headless
 pafy
 pandas
+pillow
 qrcode
 requests
 streamlit
