@@ -16,8 +16,13 @@ st.title('PY☢ṕ€NCV')
 
 #----------------------------------------------------------------------------------------------------------------------#
 
-CATEGORIES_LIST: list = ['Read Image']
-CATEGORIES_LIST.sort()
+MAIN_CATEGORIES: list = ['Image Analysis', 'Video Analysis']
+
+IMAGE_CATEGORIES: list = ['Read Image', 'Face Detection', ]
+IMAGE_CATEGORIES.sort()
+
+VIDEO_CATEGORIES: list = []
+IMAGE_CATEGORIES.sort()
 
 ## OpenCV - 3 Color Channels
 BLUE, GREEN, RED = (255, 0, 0), (0, 255, 0), (0, 0, 255)
@@ -37,6 +42,21 @@ def Excel_Downloader(df: pandas.DataFrame) -> str:
 	processed_data = output.getvalue()
 	b64 = base64.b64encode(processed_data)
 	return f"<a href = 'data:application/octet-stream;base64,{b64.decode()}' download = 'Data.xlsx'> Download Excel </a>"
+
+
+@st.cache
+def Detect_Faces(input_image):
+	input_image = numpy.array( object = input_image.convert('RGB') )
+	new_image = cv2.cvtColor( src = input_image, code = cv2.COLOR_BGR2BGRA )
+	gray_image = cv2.cvtColor( src = input_image, code = cv2.COLOR_BGR2GRAY )
+	## Detect Faces
+	faces = face_cascade.detectMultiScale(image = gray_image, scaleFactor = 1.1, minNeighbors = 4)
+	## Draw Rectangle Around the Faces
+	for (x, y, w, h) in faces:
+		cv2.rectangle(img = new_image, color = BLUE, thickness = 2,
+			pt1 = (x, y), pt2 = (x + w, y + h) )
+	return new_image, faces
+
 
 #----------------------------------------------------------------------------------------------------------------------#
 
@@ -63,23 +83,41 @@ def EXECUTE_MAIN() -> None:
 		[ << LinkedIn >> ] ( https://linkedin.com/in/akash-ponnurangam-408363125/ ) \n
 	''')
 
-	CATEGORY = st.selectbox(label = 'Choose Micro App', options = CATEGORIES_LIST)
+	col_1, col_2 = st.beta_columns((2, 2))
+
+	CATEGORY: str = col_1.selectbox(label = 'Image / Video Analysis', options = MAIN_CATEGORIES)
 
 	st.write('*' * 100)
 
-	if CATEGORY == 'Read Image':
-		try:
-			st.write('** OpenCV Read Image **')
-			image_file = st.file_uploader(label = 'Choose an Image', accept_multiple_files = False, 
-				type = ['JPG', 'JPEG', 'PNG', 'GIF', 'BMP', 'TIFF'] )
-			if image_file is not None:
-				our_image = Image.open( fp = image_file, mode = 'r' )
-				new_image = cv2.cvtColor( src = numpy.array( our_image.convert('RGB') ), 
-					code = cv2.COLOR_BGR2BGRA )
-				st.image(image = our_image, caption = 'Original Image', use_column_width = True)
-				st.image(image = new_image, caption = 'OpenCV Image', use_column_width = True)
-		except Exception as ex:
-			st.write(f'** Error : ** { ex } ')
+	if CATEGORY == 'Image Analysis':
+		SUB_CATEGORY: str = col_2.selectbox(label = 'Select Sub Category', options = IMAGE_CATEGORIES)
+
+		if SUB_CATEGORY == 'Read Image':
+			try:
+				st.write('** OpenCV Read Image **')
+				image_file = st.file_uploader(label = 'Choose an Image', accept_multiple_files = False, 
+					type = ['JPG', 'JPEG', 'PNG', 'GIF', 'BMP', 'TIFF'] )
+				if image_file is not None:
+					our_image = Image.open( fp = image_file, mode = 'r' )
+					new_image = cv2.cvtColor( src = numpy.array( object = our_image.convert('RGB') ), 
+						code = cv2.COLOR_BGR2BGRA )
+					st.image(image = our_image, caption = 'Original Image from PIL', use_column_width = True)
+					st.image(image = new_image, caption = 'Original Image from OpenCV', use_column_width = True)
+			except Exception as ex:
+				st.write(f'** Error : ** { ex } ')
+
+		elif SUB_CATEGORY == 'Face Detection':
+			try:
+				st.write('** OpenCV Face Detection **')
+				image_file = st.file_uploader(label = 'Choose an Image', accept_multiple_files = False, 
+					type = ['JPG', 'JPEG', 'PNG', 'GIF', 'BMP', 'TIFF'] )
+				if image_file is not None:
+					input_image = Image.open( fp = image_file, mode = 'r' )
+					result_image, result_faces = Detect_Faces( input_image = input_image )
+					st.image(image = result_image, use_column_width = True)
+					st.success(f'Found { len(result_faces) } faces')
+			except Exception as ex:
+				st.write(f'** Error : ** { ex } ')
 
 
 #----------------------------------------------------------------------------------------------------------------------#
