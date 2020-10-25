@@ -18,7 +18,7 @@ st.title('PY☢ṕ€NCV')
 
 MAIN_CATEGORIES: list = ['Image Analysis', 'Video Analysis']
 
-IMAGE_CATEGORIES: list = ['Read Image', 'Face Detection', ]
+IMAGE_CATEGORIES: list = ['Read Image', 'Face Detection', 'Eye Detection', 'Smile Detection', ]
 IMAGE_CATEGORIES.sort()
 
 VIDEO_CATEGORIES: list = []
@@ -56,6 +56,34 @@ def Detect_Faces(input_image):
 		cv2.rectangle(img = new_image, color = BLUE, thickness = 2,
 			pt1 = (x, y), pt2 = (x + w, y + h) )
 	return new_image, faces
+
+
+@st.cache
+def Detect_Eyes(input_image):
+	input_image = numpy.array( object = input_image.convert('RGB') )
+	new_image = cv2.cvtColor( src = input_image, code = cv2.COLOR_BGR2BGRA )
+	gray_image = cv2.cvtColor( src = input_image, code = cv2.COLOR_BGR2GRAY )
+	## Detect Eyes
+	eyes = eye_cascade.detectMultiScale(image = gray_image, scaleFactor = 1.3, minNeighbors = 5)
+	## Draw Rectangle Around the Eyes
+	for (ex, ey, ew, eh) in eyes:
+		cv2.rectangle(img = new_image, color = GREEN, thickness = 2,
+			pt1 = (ex, ey), pt2 = (ex + ew, ey + eh) )
+	return new_image, eyes
+
+
+@st.cache
+def Detect_Smiles(input_image):
+	input_image = numpy.array( object = input_image.convert('RGB') )
+	new_image = cv2.cvtColor( src = input_image, code = cv2.COLOR_BGR2BGRA )
+	gray_image = cv2.cvtColor( src = input_image, code = cv2.COLOR_BGR2GRAY )
+	## Detect Eyes
+	smiles = smile_cascade.detectMultiScale(image = gray_image, scaleFactor = 1.1, minNeighbors = 4)
+	## Draw Rectangle Around the Smiles
+	for (x, y, w, h) in smiles:
+		cv2.rectangle(img = new_image, color = BLUE, thickness = 2,
+			pt1 = (x, y), pt2 = (x + w, y + h) )
+	return new_image, smiles
 
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -114,8 +142,34 @@ def EXECUTE_MAIN() -> None:
 				if image_file is not None:
 					input_image = Image.open( fp = image_file, mode = 'r' )
 					result_image, result_faces = Detect_Faces( input_image = input_image )
-					st.image(image = result_image, use_column_width = True)
-					st.success(f'Found { len(result_faces) } faces')
+					st.image(image = result_image, caption = 'Face Detection', use_column_width = True)
+					st.success(f'Found { len(result_faces) } Faces!')
+			except Exception as ex:
+				st.write(f'** Error : ** { ex } ')
+
+		elif SUB_CATEGORY == 'Eye Detection':
+			try:
+				st.write('** OpenCV Eye Detection **')
+				image_file = st.file_uploader(label = 'Choose an Image', accept_multiple_files = False, 
+					type = ['JPG', 'JPEG', 'PNG', 'GIF', 'BMP', 'TIFF'] )
+				if image_file is not None:
+					input_image = Image.open( fp = image_file, mode = 'r' )
+					result_image, result_eyes = Detect_Eyes( input_image = input_image )
+					st.image(image = result_image, caption = 'Eye Detection', use_column_width = True)
+					st.success(f'Found { len(result_eyes) } Eyes!')
+			except Exception as ex:
+				st.write(f'** Error : ** { ex } ')
+
+		elif SUB_CATEGORY == 'Smile Detection':
+			try:
+				st.write('** OpenCV Smile Detection **')
+				image_file = st.file_uploader(label = 'Choose an Image', accept_multiple_files = False, 
+					type = ['JPG', 'JPEG', 'PNG', 'GIF', 'BMP', 'TIFF'] )
+				if image_file is not None:
+					input_image = Image.open( fp = image_file, mode = 'r' )
+					result_image, result_smiles = Detect_Smiles( input_image = input_image )
+					st.image(image = result_image, caption = 'Smile Detection', use_column_width = True)
+					st.success(f'Found { len(result_smiles) } Smiles!')
 			except Exception as ex:
 				st.write(f'** Error : ** { ex } ')
 
