@@ -18,21 +18,18 @@ from textblob import TextBlob, Word
 #----------------------------------------------------------------------------------------------------------------------#
 
 ## Use the Full Page Instead of Narrow Central Column.
-st.beta_set_page_config(layout = 'wide')
+st.set_page_config(layout = 'wide')
 
 st.title('Ak@$h😎J€€Z')
-
-## Download the Wordnet Package from NLTK.
-nltk.download('wordnet')
 
 #----------------------------------------------------------------------------------------------------------------------#
 
 CATEGORIES_LIST: list = ['Age Calculator', 'Python Tutorial', 'Google Translator', 'CoronaVirus Stats', 'Stock Ticker', 
 	'Urban Dictionary', 'Best Poetries', 'YouTube Downloader', 'Cloud Market Cost', 'AWS Cloud Cost', 'National Today', 
 	'Google News', 'Other Tools', 'World Countries', 'Song Lyrics', 'Text Analysis', 'Emojis Search', 'Microsoft Learn', 
-	'Cricket IPL Stats', 'ICC Cricket World Cup Stats', 'ICC Cricket Stats', 'Weather Report', 'Open Trivia', 
-	'Proxy List', 'Movie Rankings', 'Online Radio', 'GitHub Repository', 'TV Show Search', 'Job Portal', 'Movie Search',
-	'Google Map Search', 'Crypto Currency', 'Python Packages', 'Social Media Stats' ]
+	'Weather Report', 'Open Trivia', 'Proxy List', 'Movie Rankings', 'Online Radio', 'GitHub Repository', 'TV Show Search', 
+	'Job Portal', 'Movie Search', 'Google Map Search', 'Crypto Currency', 'Python Packages', 'Social Media Stats', 
+	'CoronaVirus India Stats', ]
 CATEGORIES_LIST.sort()
 
 LANGUAGES: dict = {'Afrikaans': 'af', 'Albanian': 'sq', 'Amharic': 'am', 'Arabic': 'ar', 'Armenian': 'hy', 'Azerbaijani': 'az', 
@@ -137,6 +134,15 @@ def Proxy_List(urls: list) -> pandas.DataFrame:
 	dataset.drop_duplicates(['IP Address'], inplace = True)
 	dataset.dropna(inplace = True)
 	return dataset
+
+
+@st.cache
+def Coronavirus_India_Stats() -> dict:
+	BASE_URL: str = 'https://api.covid19india.org/csv'
+	state_dataset = pandas.read_csv(f'{BASE_URL}/latest/state_wise.csv')
+	state_wise_dataset = pandas.read_csv(f'{BASE_URL}/latest/states.csv')
+	district_dataset = pandas.read_csv(f'{BASE_URL}/latest/districts.csv')
+	return state_dataset, state_wise_dataset, district_dataset
 
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -522,23 +528,25 @@ def EXECUTE_MAIN() -> None:
 	elif CATEGORY == 'Text Analysis':
 		try:
 			st.subheader('** Text Analysis **')
+			## Download the Wordnet Package from NLTK if Not availble.
+			nltk.download('wordnet')
 			col_1, col_2, col_3 = st.beta_columns((2, 2, 2))
-			language = { value: key for key, value in LANGUAGES.items() }
+			language: dict = { value: key for key, value in LANGUAGES.items() }
 			choice: str = col_1.radio(label = 'Choose Type', options = ('Language Detection', 'Language Translation', 
 				'Sentiment Analysis', 'Spelling Correction', 'Synonyms Antonyms',) )
-			sentence = col_2.text_input(label = 'Type Sentence', value = 'Great')
+			sentence: str = col_2.text_input(label = 'Type Sentence', value = 'Great')
 			blob = TextBlob( sentence.strip().title() )
 			if choice == 'Language Detection':
 				st.write(f'** Language Detected -> ** { language[ blob.detect_language() ] }')
 			elif choice == 'Language Translation':
-				lang_name = col_3.selectbox(label = 'Choose Language to Translate', options = list(LANGUAGES.keys()) )
+				lang_name: str = col_3.selectbox(label = 'Choose Language to Translate', options = list(LANGUAGES.keys()) )
 				st.write(f"** { sentence.title() } -> ** { blob.translate(to = LANGUAGES[lang_name]) }")
 			elif choice == 'Spelling Correction':
 				st.write(f"** { sentence.title() } -> ** { blob.correct() }")
 			elif choice == 'Sentiment Analysis':
 				polarity, subjectivity = blob.sentiment
 				polarity, subjectivity = round(float(polarity), 2), round(float(subjectivity), 2)
-				sentiment = 'Positive' if polarity >= 0.1 else 'Negative' if polarity <= -0.1 else 'Neutral'
+				sentiment: str = 'Positive' if polarity >= 0.1 else 'Negative' if polarity <= -0.1 else 'Neutral'
 				st.write(f"** { sentence.title() } -> ** { sentiment }")
 				st.write(f'** Score -> ** Polarity : { polarity } | Subjectivity : { subjectivity } ')
 			elif choice == 'Synonyms Antonyms':
@@ -587,139 +595,6 @@ def EXECUTE_MAIN() -> None:
 			st.dataframe( data = pandas.DataFrame( response[ section ] ) )
 		except Exception as ex:
 			st.error(f'\n ** Error: {ex} **')
-
-	elif CATEGORY == 'Cricket IPL Stats':
-		try:
-			st.subheader('** Cricket IPL Stats **')
-			col_1, col_2 = st.beta_columns((2, 2))
-			options: list = [data for data in range(2008, datetime.now().year + 1)]
-			options.append('all-time')
-			category: str = col_1.selectbox(label = 'Select IPL Year / All-Time ?', options = options)
-			BASE_URL: str = f'https://iplt20.com/stats/{category}'
-			ipl_categories: list = ['IPL Winners', 'Most Runs', 'Most Sixes', 'Most Sixes in Innings', 'Highest Scores', 
-				'Points Table', 'Best Strike Rate', 'Best Strike Rate in Innings', 'Best Batting Average', 'Most Fifties', 
-				'Most Centuries', 'Most Fours', 'Fastest Fifties', 'Fastest Centuries', 'Most Wickets', 'Best Bowling in Innings', 
-				'Most Dot Balls', 'Best Bowling Average', 'Best Bowling Economy', 'Most Runs Conceded', 'Most Maiden Overs', 
-				'Most 4 Wickets', 'Best Bowling Average Strike Rate in Innings', 'Best Bowling Average Strike Rate' ]
-			ipl_categories.sort()
-			ipl_category: str = col_2.selectbox(label = 'Select IPL Category', options = ipl_categories )
-			if ipl_category == 'IPL Winners':
-				st.write('** IPL Winners **')
-				dataset = pandas.read_html( requests.get('https://sportskeeda.com/cricket/ipl-winners-list', 
-					headers = { 'User-Agent': UserAgent().random }).text )[0]
-				new_header = dataset.iloc[0] 
-				dataset = dataset[1 : ] 
-				dataset.columns = new_header
-			elif ipl_category == 'Most Runs':	dataset = pandas.read_html(f'{BASE_URL}/most-runs')[0]
-			elif ipl_category == 'Most Sixes':	dataset = pandas.read_html(f'{BASE_URL}/most-sixes')[0]
-			elif ipl_category == 'Most Sixes in Innings':	dataset = pandas.read_html(f'{BASE_URL}/most-sixes-innings')[0]
-			elif ipl_category == 'Highest Scores':	dataset = pandas.read_html(f'{BASE_URL}/highest-scores')[0]
-			elif ipl_category == 'Best Strike Rate':	dataset = pandas.read_html(f'{BASE_URL}/best-batting-strike-rate')[0]
-			elif ipl_category == 'Best Strike Rate in Innings':	dataset = pandas.read_html(f'{BASE_URL}/best-batting-strike-rate-innings')[0]
-			elif ipl_category == 'Best Batting Average':	dataset = pandas.read_html(f'{BASE_URL}/best-batting-average')[0]
-			elif ipl_category == 'Most Fifties':	dataset = pandas.read_html(f'{BASE_URL}/most-fifties')[0]
-			elif ipl_category == 'Most Centuries':	dataset = pandas.read_html(f'{BASE_URL}/most-centuries')[0]
-			elif ipl_category == 'Most Fours':	dataset = pandas.read_html(f'{BASE_URL}/most-fours')[0]
-			elif ipl_category == 'Fastest Fifties':	dataset = pandas.read_html(f'{BASE_URL}/fastest-fifties')[0]
-			elif ipl_category == 'Fastest Centuries':	dataset = pandas.read_html(f'{BASE_URL}/fastest-centuries')[0]
-			elif ipl_category == 'Most Wickets':	dataset = pandas.read_html(f'{BASE_URL}/most-wickets')[0]
-			elif ipl_category == 'Best Bowling in Innings':	dataset = pandas.read_html(f'{BASE_URL}/best-bowling-innings')[0]
-			elif ipl_category == 'Best Bowling Average':	dataset = pandas.read_html(f'{BASE_URL}/best-bowling-average')[0]
-			elif ipl_category == 'Best Bowling Economy':	dataset = pandas.read_html(f'{BASE_URL}/best-bowling-economy')[0]
-			elif ipl_category == 'Best Bowling Average Strike Rate in Innings':	
-				dataset = pandas.read_html(f'{BASE_URL}/best-bowling-strike-rate-innings')[0]
-			elif ipl_category == 'Best Bowling Average Strike Rate':	
-				dataset = pandas.read_html(f'{BASE_URL}/best-bowling-strike-rate')[0]
-			elif ipl_category == 'Most Runs Conceded':	dataset = pandas.read_html(f'{BASE_URL}/most-runs-conceded-innings')[0]
-			elif ipl_category == 'Most Dot Balls':	dataset = pandas.read_html(f'{BASE_URL}/most-dot-balls')[0]
-			elif ipl_category == 'Most Maiden Overs':	dataset = pandas.read_html(f'{BASE_URL}/most-maidens')[0]
-			elif ipl_category == 'Most 4 Wickets':	dataset = pandas.read_html(f'{BASE_URL}/most-four-wickets')[0]
-			elif ipl_category == 'Points Table':
-				if category == 'all-time':	st.write('** No Point Table for All Time Stats in IPL! **')
-				dataset = pandas.read_html(f'https://iplt20.com/points-table/{category}')[0]
-				dataset.rename(columns = {'Unnamed: 0': 'Rank', 'Pld': 'Matches', 'Pts': 'Points'}, inplace = True)
-				dataset = dataset[['Rank', 'Team', 'Matches', 'Won', 'Lost', 'Tied', 'N/R', 'Net RR', 'Points']]
-			st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
-			st.dataframe( data = dataset )
-		except Exception as ex:
-			st.error(f'\n ** Error: {ex} **')
-
-	elif CATEGORY == 'ICC Cricket Stats':
-		try:
-			st.subheader('** ICC Cricket Stats **')
-			BASE_URL: str = 'https://icc-cricket.com/rankings/mens'
-			icc_categories: list = ['Test Player Batting Stats', 'Test Player Bowling Stats', 'Test Player All-Rounder Stats',
-				'ODI Team Stats', 'ODI Player Batting Stats', 'ODI Player Bowling Stats', 'ODI Player All-Rounder Stats',
-				'T20I Team Stats', 'T20I Player Batting Stats', 'T20I Player Bowling Stats', 'T20I Player All-Rounder Stats', 'Test Team Stats']
-			icc_categories.sort()
-			icc_category: str = st.selectbox(label = 'Select ICC Category', options = icc_categories )
-			if icc_category == 'Test Team Stats':	dataset = pandas.read_html(f'{BASE_URL}/team-rankings/test')[0]
-			elif icc_category == 'Test Player Batting Stats':	dataset = pandas.read_html(f'{BASE_URL}/player-rankings/test/batting')[0]
-			elif icc_category == 'Test Player Bowling Stats':	dataset = pandas.read_html(f'{BASE_URL}/player-rankings/test/bowling')[0]
-			elif icc_category == 'Test Player All-Rounder Stats':	dataset = pandas.read_html(f'{BASE_URL}/player-rankings/test/all-rounder')[0]
-			elif icc_category == 'ODI Team Stats':	dataset = pandas.read_html(f'{BASE_URL}/team-rankings/odi')[0]
-			elif icc_category == 'ODI Player Batting Stats':	dataset = pandas.read_html(f'{BASE_URL}/player-rankings/odi/batting')[0]
-			elif icc_category == 'ODI Player Bowling Stats':	dataset = pandas.read_html(f'{BASE_URL}/player-rankings/odi/bowling')[0]
-			elif icc_category == 'ODI Player All-Rounder Stats':	dataset = pandas.read_html(f'{BASE_URL}/player-rankings/odi/all-rounder')[0]
-			elif icc_category == 'T20I Team Stats':	dataset = pandas.read_html(f'{BASE_URL}/team-rankings/t20i')[0]
-			elif icc_category == 'T20I Player Batting Stats':	dataset = pandas.read_html(f'{BASE_URL}/player-rankings/t20i/batting')[0]
-			elif icc_category == 'T20I Player Bowling Stats':	dataset = pandas.read_html(f'{BASE_URL}/player-rankings/t20i/bowling')[0]
-			elif icc_category == 'T20I Player All-Rounder Stats':	dataset = pandas.read_html(f'{BASE_URL}/player-rankings/t20i/all-rounder')[0]
-			st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
-			st.dataframe( data = dataset )
-		except Exception as ex:
-			st.error(f'\n ** Error: { ex } **')
-
-	elif CATEGORY == 'ICC Cricket World Cup Stats':
-		try:
-			st.subheader('** ICC Cricket World Cup Stats **')
-			BASE_URL: str = 'https://cricketworldcup.com/stats'
-			icc_categories: list = ['Most Runs', 'Highest Scores', 'Best Batting Average', 'Best Batting Strike Rate', 'Best Batting Strike Rate Innings',
-				'Most Centuries', 'Fastest Centuries', 'Most Fifties', 'Fastest Fifties', 'Most Sixes', 'Most Fours', 'Best Bowling Average',
-				'Best Bowling Economy', 'Best Bowling Economy Innings', 'Best Bowling Strike Rate', 'Best Bowling Strike Rate Innings', 'Most Wickets',
-				'Best Bowling Figures', 'Most Maidens', 'Most Dot Balls', 'Most Dot Balls Innings', 'Best Win Percetage', 'Most Wins', 'Most Losses',
-				'Highest Match Aggregate', 'Largest Victories Runs', 'Largest Victories Wickets', 'ICC Cricket World Cup Winners']
-			icc_categories.sort()
-			icc_category: str = st.selectbox(label = 'Select ICC World Cup Category', options = icc_categories )
-			if icc_category == 'ICC Cricket World Cup Winners':
-				st.write('** ICC Cricket World Cup Winners **')
-				request_url: str = 'https://sportskeeda.com/cricket/cricket-world-cup-winners'
-				headers: dict = { 'User-Agent': UserAgent().random }
-				dataset = pandas.read_html( requests.get(request_url, headers = headers).text )[0]
-				new_header = dataset.iloc[0] 
-				dataset = dataset[1 : ] 
-				dataset.columns = new_header
-			if icc_category == 'Most Runs':	dataset = pandas.read_html(f'{BASE_URL}/most-runs')[0]
-			elif icc_category == 'Highest Scores':	dataset = pandas.read_html(f'{BASE_URL}/highest-score')[0]
-			elif icc_category == 'Best Batting Average':	dataset = pandas.read_html(f'{BASE_URL}/best-batting-average')[0]
-			elif icc_category == 'Best Batting Strike Rate':	dataset = pandas.read_html(f'{BASE_URL}/best-batting-strike-rate')[0]
-			elif icc_category == 'Best Batting Strike Rate Innings':	dataset = pandas.read_html(f'{BASE_URL}/best-batting-strike-rate-innings')[0]
-			elif icc_category == 'Most Centuries':	dataset = pandas.read_html(f'{BASE_URL}/most-centuries')[0]
-			elif icc_category == 'Fastest Centuries':	dataset = pandas.read_html(f'{BASE_URL}/fastest-centuries')[0]
-			elif icc_category == 'Most Fifties':	dataset = pandas.read_html(f'{BASE_URL}/most-fifties')[0]
-			elif icc_category == 'Fastest Fifties':	dataset = pandas.read_html(f'{BASE_URL}/fastest-fifties')[0]
-			elif icc_category == 'Most Sixes':	dataset = pandas.read_html(f'{BASE_URL}/most-sixes')[0]
-			elif icc_category == 'Most Fours':	dataset = pandas.read_html(f'{BASE_URL}/most-fours')[0]
-			elif icc_category == 'Most Wickets':	dataset = pandas.read_html(f'{BASE_URL}/most-wickets')[0]
-			elif icc_category == 'Best Bowling Average':	dataset = pandas.read_html(f'{BASE_URL}/best-bowling-average')[0]
-			elif icc_category == 'Best Bowling Economy':	dataset = pandas.read_html(f'{BASE_URL}/best-bowling-economy')[0]
-			elif icc_category == 'Best Bowling Economy Innings':	dataset = pandas.read_html(f'{BASE_URL}/best-bowling-economy-innings')[0]
-			elif icc_category == 'Best Bowling Strike Rate':	dataset = pandas.read_html(f'{BASE_URL}/best-bowling-strike-rate')[0]
-			elif icc_category == 'Best Bowling Strike Rate Innings':	dataset = pandas.read_html(f'{BASE_URL}/best-bowling-strike-rate-innings')[0]
-			elif icc_category == 'Best Bowling Figures':	dataset = pandas.read_html(f'{BASE_URL}/best-bowling-figures')[0]
-			elif icc_category == 'Most Maidens':	dataset = pandas.read_html(f'{BASE_URL}/most-maidens')[0]
-			elif icc_category == 'Most Dot Balls':	dataset = pandas.read_html(f'{BASE_URL}/most-dot-balls')[0]
-			elif icc_category == 'Most Dot Balls Innings':	dataset = pandas.read_html(f'{BASE_URL}/most-dot-balls-innings')[0]
-			elif icc_category == 'Best Win Percetage':	dataset = pandas.read_html(f'{BASE_URL}/best-win-percentage')[0]
-			elif icc_category == 'Most Wins':	dataset = pandas.read_html(f'{BASE_URL}/most-wins')[0]
-			elif icc_category == 'Most Losses':	dataset = pandas.read_html(f'{BASE_URL}/most-losses')[0]
-			elif icc_category == 'Highest Match Aggregate':	dataset = pandas.read_html(f'{BASE_URL}/highest-match-aggregates')[0]
-			elif icc_category == 'Largest Victories Runs':	dataset = pandas.read_html(f'{BASE_URL}/largest-victories-runs')[0]
-			elif icc_category == 'Largest Victories Wickets':	dataset = pandas.read_html(f'{BASE_URL}/largest-victories-wickets')[0]
-			st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
-			st.dataframe( data = dataset )
-		except Exception as ex:
-			st.error(f'\n ** Error: { ex } **')
 
 	elif CATEGORY == 'Weather Report':
 		try:
@@ -969,22 +844,22 @@ def EXECUTE_MAIN() -> None:
 			st.subheader('** Python Packages Search **')
 			dataset, BASE_URL = [], 'https://pypi.org'
 			tree = html.fromstring(requests.get(f'{BASE_URL}/simple').content)
-			input_package = st.text_input(label = 'Enter Python Package Name', value = 'akashjeez')
+			input_package: str = st.text_input(label = 'Enter Python Package Name', value = 'akashjeez')
 			for package in tree.xpath('//a/text()'):
 				if input_package.lower() == package:
-						response = requests.get(f'{BASE_URL}/pypi/{package}/json/').json()
-						data_info, data_urls = response['info'], response['urls']
-						dataset.append({
-							'package_name': package.title(), 'package_url': data_info.get('package_url', 'TBD'),
-							'author': data_info.get('author', 'TBD'), 'author_email': data_info.get('author_email', 'TBD'),
-							'home_page': data_info.get('home_page', 'TBD'), 'project_url': data_info.get('project_url', 'TBD'),
-							'release_url': data_info.get('release_url', 'TBD'), 'summary': data_info.get('summary', 'TBD'),
-							'requires_python': data_info.get('requires_python', 'TBD'), 'version': data_info.get('version', 'TBD'),
-							'urls': [{
-								'filename': url.get('filename', 'TBD'), 'download_url': url.get('url',' TBD'),
-								'last_uploaded': datetime.strptime(url['upload_time'], '%Y-%m-%dT%H:%M:%S').strftime('%d-%b-%Y %I:%M %p')
-							} for url in data_urls], 'classifiers': data_info.get('classifiers', 'TBD'),
-						})
+					response = requests.get(f'{BASE_URL}/pypi/{package}/json/').json()
+					data_info, data_urls = response['info'], response['urls']
+					dataset.append({
+						'package_name': package.title(), 'package_url': data_info.get('package_url', 'TBD'),
+						'author': data_info.get('author', 'TBD'), 'author_email': data_info.get('author_email', 'TBD'),
+						'home_page': data_info.get('home_page', 'TBD'), 'project_url': data_info.get('project_url', 'TBD'),
+						'release_url': data_info.get('release_url', 'TBD'), 'summary': data_info.get('summary', 'TBD'),
+						'requires_python': data_info.get('requires_python', 'TBD'), 'version': data_info.get('version', 'TBD'),
+						'urls': [{
+							'filename': url.get('filename', 'TBD'), 'download_url': url.get('url',' TBD'),
+							'last_uploaded': datetime.strptime(url['upload_time'], '%Y-%m-%dT%H:%M:%S').strftime('%d-%b-%Y %I:%M %p')
+						} for url in data_urls], 'classifiers': data_info.get('classifiers', 'TBD'),
+					})
 			st.json( { 'count': len(dataset), 'data': dataset } )
 		except Exception as ex:
 			st.error(f'\n ** Error: { ex } **')
@@ -1009,6 +884,61 @@ def EXECUTE_MAIN() -> None:
 			st.dataframe( pandas.read_html(f'{BASE_URL}/youtube/trending.html')[0] )
 			st.write('** Spotify Charts **')
 			st.dataframe( pandas.read_html(f'{BASE_URL}/spotify/country/global_daily.html')[0] )
+		except Exception as ex:
+			st.error(f'\n ** Error: { ex } **')
+
+	elif CATEGORY == 'CoronaVirus India Stats':
+		try:
+			st.subheader('** CoronaVirus India Stats **')
+			with st.beta_expander(label = 'About Coronavirus', expanded = False):
+				st.write(""" Coronavirus Disease (COVID-19) is an Infectious Disease Caused by a Newly Discovered Coronavirus. 
+					Most People Infected With the COVID-19 Virus will Experience Mild to Moderate Respiratory Illness and Recover 
+					Without Requiring Special Treatment. Older People, and Those with Underlying Medical Problems like Cardiovascular 
+					Disease, Diabetes, Chronic Respiratory Disease, and Cancer are More Likely to Develop Serious Illness. 
+					The best Way to Prevent and Slow Down Transmission is to be Well Informed About the COVID-19 Virus, The 
+					Disease it Causes and How it Spreads. Protect Yourself and Others From Infection by Washing Your Hands or 
+					Using an Alcohol Based Rub Frequently and Not Touching Your Face. """)
+				base64_pdf = base64.b64encode( requests.get('https://mohfw.gov.in/pdf/FAQ.pdf').content ).decode('utf-8')
+				st.markdown( body = f"<embed src='data:application/pdf;base64,{base64_pdf}' width = 70% \
+					height = 600 type = 'application/pdf'>", unsafe_allow_html = True); st.write('\n')
+			col_1, col_2 = st.beta_columns((2, 2))
+			state_dataset, state_wise_dataset, district_dataset = Coronavirus_India_Stats()
+			CHOICE: str = col_1.selectbox(label = 'Choose Category', options = ['Indian States', 'State Wise Daily', 'District Wise Daily'] )
+			if CHOICE == 'Indian States':
+				dataset = state_dataset[['State_code', 'State', 'Confirmed', 'Recovered', 'Deaths', 'Active']]
+				dataset = dataset[ (dataset.State != 'Total') & (dataset.Confirmed != 0) ]
+				dataset.sort_values(by = ['Confirmed'], ascending = False, inplace = True)
+				st.write('** Stats : ** Total Cases : {} | Total Recovered : {} | Total Deaths : {} | Total Active Cases : {}'.\
+					format( int(dataset.Confirmed.sum()), int(dataset.Recovered.sum()), int(dataset.Deaths.sum()), int(dataset.Active.sum()) ))
+			elif CHOICE == 'State Wise Daily':
+				dataset = state_wise_dataset[['Date', 'State', 'Confirmed', 'Recovered', 'Deceased']]
+				default = options = list(set(dataset.State.unique()))
+				input_states: str = col_2.multiselect(label = 'Select Indian State(s)', options = options, default = default)
+				dataset = dataset[ (dataset.State.isin( input_states )) & (dataset.State != 'India') ]
+				dataset.sort_values(by = ['Confirmed'], ascending = False, inplace = True)
+				st.write(f"** > Selected Indian State(s) are ** {', '.join( input_states )} ")
+				if len( dataset ) > 0:
+					dataset.Date = pandas.to_datetime( dataset.Date )
+					datasett = dataset[ (dataset.Date == str( dataset.Date.max() )) ]
+					st.write('** Stats : ** Total Cases : {} | Total Recovered : {} | Total Deaths : {} '.\
+						format( int(datasett.Confirmed.sum()), int(datasett.Recovered.sum()), int(datasett.Deceased.sum()) ))
+			elif CHOICE == 'District Wise Daily':
+				dataset = district_dataset[['Date', 'State', 'District', 'Confirmed', 'Recovered', 'Deceased']]
+				input_state: str = col_2.selectbox(label = 'Select Indian State', options = list(set(dataset.State.unique())))
+				dataset = dataset[ (dataset.State == input_state) ]
+				default = options = list(set(dataset.District.unique()))
+				input_districts: str = st.multiselect(label = 'Select Indian District(s)', options = options, default = default)
+				dataset = dataset[ (dataset.District.isin( input_districts )) ]
+				dataset.sort_values(by = ['Confirmed'], ascending = False, inplace = True)
+				st.write(f"** > Selected Indian State -> ** { input_state } ")
+				st.write(f"** > Selected { input_state } District(s) are ** {', '.join( input_districts )} ")
+				if len( dataset ) > 0:
+					dataset.Date = pandas.to_datetime( dataset.Date )
+					datasett = dataset[ (dataset.Date == str( dataset.Date.max() )) ]
+					st.write('** Stats : ** Total Cases : {} | Total Recovered : {} | Total Deaths : {} '.\
+						format( int(datasett.Confirmed.sum()), int(datasett.Recovered.sum()), int(datasett.Deceased.sum()) ))
+			st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+			st.dataframe( data = dataset )
 		except Exception as ex:
 			st.error(f'\n ** Error: { ex } **')
 

@@ -10,7 +10,7 @@ from io import BytesIO, TextIOWrapper
 #----------------------------------------------------------------------------------------------------------------------#
 
 ## Use the Full Page Instead of Narrow Central Column.
-st.beta_set_page_config(layout = 'wide')
+st.set_page_config(layout = 'wide')
 
 st.title('PY☢ṕ€NCV')
 
@@ -18,7 +18,8 @@ st.title('PY☢ṕ€NCV')
 
 MAIN_CATEGORIES: list = ['Image Analysis', 'Video Analysis']
 
-IMAGE_CATEGORIES: list = ['Read Image', 'Face Detection', 'Eye Detection', 'Smile Detection', ]
+IMAGE_CATEGORIES: list = ['Read Image', 'Face Detection', 'Eye Detection', 'Smile Detection', 
+	'Pencil Sketch', ]
 IMAGE_CATEGORIES.sort()
 
 VIDEO_CATEGORIES: list = []
@@ -86,6 +87,17 @@ def Detect_Smiles(input_image):
 	return new_image, smiles
 
 
+@st.cache
+def Pencil_Sketch(input_image):
+	input_image = numpy.array( object = input_image.convert('RGB') )
+	gray_image = cv2.cvtColor( src = input_image, code = cv2.COLOR_BGR2GRAY )
+	image_invert = cv2.bitwise_not( src = gray_image )
+	image_smoothing = cv2.GaussianBlur(src = image_invert, 
+		ksize = (21, 21), sigmaX = 0, sigmaY = 0)
+	final_image = cv2.divide( src1 = gray_image, src2 = 255 - image_smoothing, scale = 256 )
+	return final_image	
+
+
 #----------------------------------------------------------------------------------------------------------------------#
 
 def EXECUTE_MAIN() -> None:
@@ -142,6 +154,7 @@ def EXECUTE_MAIN() -> None:
 				if image_file is not None:
 					input_image = Image.open( fp = image_file, mode = 'r' )
 					result_image, result_faces = Detect_Faces( input_image = input_image )
+					st.image(image = input_image, caption = 'Original Image', use_column_width = True)
 					st.image(image = result_image, caption = 'Face Detection', use_column_width = True)
 					st.success(f'Found { len(result_faces) } Faces!')
 			except Exception as ex:
@@ -155,6 +168,7 @@ def EXECUTE_MAIN() -> None:
 				if image_file is not None:
 					input_image = Image.open( fp = image_file, mode = 'r' )
 					result_image, result_eyes = Detect_Eyes( input_image = input_image )
+					st.image(image = input_image, caption = 'Original Image', use_column_width = True)
 					st.image(image = result_image, caption = 'Eye Detection', use_column_width = True)
 					st.success(f'Found { len(result_eyes) } Eyes!')
 			except Exception as ex:
@@ -168,8 +182,22 @@ def EXECUTE_MAIN() -> None:
 				if image_file is not None:
 					input_image = Image.open( fp = image_file, mode = 'r' )
 					result_image, result_smiles = Detect_Smiles( input_image = input_image )
+					st.image(image = input_image, caption = 'Original Image', use_column_width = True)
 					st.image(image = result_image, caption = 'Smile Detection', use_column_width = True)
 					st.success(f'Found { len(result_smiles) } Smiles!')
+			except Exception as ex:
+				st.write(f'** Error : ** { ex } ')
+
+		elif SUB_CATEGORY == 'Pencil Sketch':
+			try:
+				st.write('** OpenCV Pencil Sketch **')
+				image_file = st.file_uploader(label = 'Choose an Image', accept_multiple_files = False, 
+					type = ['JPG', 'JPEG', 'PNG', 'GIF', 'BMP', 'TIFF'] )
+				if image_file is not None:
+					input_image = Image.open( fp = image_file, mode = 'r' )
+					result_image = Pencil_Sketch( input_image = input_image )
+					st.image(image = input_image, caption = 'Original Image', use_column_width = True)
+					st.image(image = result_image, caption = 'Pencil Sketch', use_column_width = True)
 			except Exception as ex:
 				st.write(f'** Error : ** { ex } ')
 

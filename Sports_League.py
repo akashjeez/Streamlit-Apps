@@ -9,7 +9,7 @@ from fake_useragent import UserAgent
 #----------------------------------------------------------------------------------------------------------------------#
 
 ## Use the Full Page Instead of Narrow Central Column.
-st.beta_set_page_config(layout = 'wide')
+st.set_page_config(layout = 'wide')
 
 st.title('Sṕ☢ℜ☂S😎L€@gU€')
 
