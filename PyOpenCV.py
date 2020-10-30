@@ -10,7 +10,7 @@ from io import BytesIO, TextIOWrapper
 #----------------------------------------------------------------------------------------------------------------------#
 
 ## Use the Full Page Instead of Narrow Central Column.
-st.set_page_config(layout = 'wide')
+st.beta_set_page_config(layout = 'wide')
 
 st.title('PY☢ṕ€NCV')
 

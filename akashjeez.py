@@ -18,7 +18,7 @@ from textblob import TextBlob, Word
 #----------------------------------------------------------------------------------------------------------------------#
 
 ## Use the Full Page Instead of Narrow Central Column.
-st.set_page_config(layout = 'wide')
+st.beta_set_page_config(layout = 'wide')
 
 st.title('Ak@$h😎J€€Z')
 
