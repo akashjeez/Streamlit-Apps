@@ -10,20 +10,19 @@ from io import BytesIO, TextIOWrapper
 #----------------------------------------------------------------------------------------------------------------------#
 
 ## Use the Full Page Instead of Narrow Central Column.
-st.set_page_config(layout = 'wide')
+st.set_page_config(page_title = 'PY☢P€NCV', page_icon = '🔥', layout = 'wide', initial_sidebar_state = 'auto')
 
-st.title('PY☢ṕ€NCV')
+st.title(body = 'PY☢P€NCV')
 
 #----------------------------------------------------------------------------------------------------------------------#
 
 MAIN_CATEGORIES: list = ['Image Analysis', 'Video Analysis']
 
-IMAGE_CATEGORIES: list = ['Read Image', 'Face Detection', 'Eye Detection', 'Smile Detection', 
-	'Pencil Sketch', ]
-IMAGE_CATEGORIES.sort()
-
+IMAGE_CATEGORIES: list = ['Read Image', 'Face Detection', 'Eye Detection', 'Smile Detection', 'Pencil Sketch', ]
 VIDEO_CATEGORIES: list = []
+
 IMAGE_CATEGORIES.sort()
+VIDEO_CATEGORIES.sort()
 
 ## OpenCV - 3 Color Channels
 BLUE, GREEN, RED = (255, 0, 0), (0, 255, 0), (0, 0, 255)
@@ -101,18 +100,9 @@ def Pencil_Sketch(input_image):
 #----------------------------------------------------------------------------------------------------------------------#
 
 def EXECUTE_MAIN() -> None:
-	st.sidebar.subheader('Contribute')
-	st.sidebar.info('''
-		This is an Open Source Project and You are Very Welcome to Contribute 
-		Your Awesome Comments, Questions, Resources and Apps as
-		[Issues] ( https://github.com/akashjeez/Streamlit-Apps/issues )
-		of or [Pull Requests] ( https://github.com/akashjeez/Streamlit-Apps/pulls )
-		to the [Source Code] ( https://github.com/akashjeez/Streamlit-Apps ).
-	''')
-
 	st.sidebar.subheader('About Me')
 	st.sidebar.info('''
-		Hi there, I am AkashJeez, Love Coding and Racing :) \
+		Developed by AkashJeez :) \
 		Feel Free to Reach Out to Me Via \n
 		[ << Website >> ] ( https://akashjeez.herokuapp.com/ ) \n
 		[ << Blogspot >> ] ( https://akashjeez.blogspot.com/ ) \n
@@ -200,6 +190,10 @@ def EXECUTE_MAIN() -> None:
 					st.image(image = result_image, caption = 'Pencil Sketch', use_column_width = True)
 			except Exception as ex:
 				st.write(f'** Error : ** { ex } ')
+
+
+	elif CATEGORY == 'Video Analysis':
+		SUB_CATEGORY: str = col_2.selectbox(label = 'Select Sub Category', options = VIDEO_CATEGORIES)
 
 
 #----------------------------------------------------------------------------------------------------------------------#

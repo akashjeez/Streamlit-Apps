@@ -12,7 +12,7 @@ from fake_useragent import UserAgent
 ## Use the Full Page Instead of Narrow Central Column.
 st.set_page_config(page_title = 'Sp☢r☂sL€agu€', page_icon = '🔥',layout = 'wide', initial_sidebar_state = 'auto' )
 
-st.title('Sp☢r☂sL€agu€')
+st.title(body = 'Sp☢r☂sL€agu€')
 
 #----------------------------------------------------------------------------------------------------------------------#
 
