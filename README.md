@@ -2,24 +2,24 @@
 Python Streamlit Data Apps
 
 ### App 1 | Sports League
--- NBA BasketBall
+>> NBA BasketBall
 
--- NFL FootBall
+>> NFL FootBall
 
--- MLB BaseBall
+>> MLB BaseBall
 
--- ICC Rankings
+>> ICC Rankings
 
--- Cricket IPL League
+>> Cricket IPL League
 
--- ICC Cricket World Cup
+>> ICC Cricket World Cup
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/akashjeez/Streamlit-Apps/main/PySportsLeague.py)
 
 ### App 2 | OpenCV
--- Image Analysis 
+>> Image Analysis 
 
--- Video Analysis 
+>> Video Analysis 
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/akashjeez/Streamlit-Apps/main/PyOpenCV.py)
 
