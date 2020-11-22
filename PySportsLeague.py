@@ -1000,14 +1000,8 @@ def NFL_Players_List() -> dict:
 	try:
 		dataset: list = []
 		for letter in list(string.ascii_uppercase):
-			df_1 = pandas.read_html(f'{NFL_BASE_URL}/players/active/{letter}')[0]
-			page = soup(markup = requests.get(f'{NFL_BASE_URL}/players/active/{letter}').text, features = 'lxml')
-			if next_page := page.find('a', class_ = 'nfl-o-table-pagination__next'):
-				df_2 = pandas.read_html(f"{NFL_BASE_URL}{next_page.get('href')}" )[0]
-				dataframe = pandas.concat(objs = [df_1, df_2])
-			else:
-				dataframe = df_1
-			dataset.append( dataframe )
+			data_frame = pandas.read_html(f'{NFL_BASE_URL}/players/active/{letter}')[0]
+			dataset.append( data_frame )
 		return pandas.concat(objs = dataset, axis = 0)
 	except Exception as ex:
 		return {'error': ex}
