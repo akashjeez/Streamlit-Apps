@@ -102,7 +102,7 @@ def Pencil_Sketch(input_image):
 def EXECUTE_MAIN() -> None:
 	st.sidebar.subheader('About Me')
 	st.sidebar.info('''
-		Developed by AkashJeez :) \
+		Developed by AkashJeez :) \n
 		Feel Free to Reach Out to Me Via \n
 		[ << Website >> ] ( https://akashjeez.herokuapp.com/ ) \n
 		[ << Blogspot >> ] ( https://akashjeez.blogspot.com/ ) \n

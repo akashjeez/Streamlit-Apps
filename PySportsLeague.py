@@ -30,6 +30,7 @@ ICC_BASE_URL: str = 'https://icc-cricket.com/rankings/mens'
 ICC_CWC_BASE_URL: str = 'https://cricketworldcup.com/stats'
 CRICKET_STATS_BASE_URL = 'https://stats.espncricinfo.com/ci/engine/records/{}'
 
+## Static Headers for NBA League.
 NBA_STATIC_HEADERS: dict = {
 	'Host': 'stats.nba.com', 
 	'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0',
@@ -94,7 +95,8 @@ MLB_CATEGORIES_LIST: list = ['About MLB', 'MLB Teams', 'MLB Sports', 'MLB Player
 	'MLB League Standings', 'MLB Divisions', 'MLB Drafts', 'MLB Umpires', 'MLB DataCasters', ]
 NBA_CATEGORIES_LIST: list = ['About NBA', 'NBA Teams', 'NBA Players', 'NBA Player Profile', 'NBA ScoreBoard',
 	'NBA League Players', 'NBA League Standings', 'NBA All Time Leaders', 'NBA Team Yearly Stats', ]
-NFL_CATEGORIES_LIST: list = ['About NFL', 'NFL Teams', 'NFL Standings', 'NFL Team Stats', 'NFL Players', ]
+NFL_CATEGORIES_LIST: list = ['About NFL', 'NFL Teams', 'NFL Standings', 'NFL Team Stats', 'NFL Players', 
+	'NFL Player Stats', ]
 IPL_CATEGORIES_LIST: list = ['IPL Winners', 'Most Runs', 'Most Sixes', 'Most Sixes in Innings', 'Highest Scores', 
 	'Points Table', 'Best Strike Rate', 'Best Strike Rate in Innings', 'Best Batting Average', 'Most Fifties', 
 	'Most Centuries', 'Most Fours', 'Fastest Fifties', 'Fastest Centuries', 'Most Wickets', 'Best Bowling in Innings', 
@@ -953,7 +955,7 @@ def List_NBA_League_Standings() -> dict:
 		payloads: dict = { 'LeagueID': '00', 'Season': season_year, 'SeasonType' : 'Regular+Season' }
 		request_url: str = f'{NBA_BASE_URL}/stats/leaguestandings?' + \
 			'&'.join( [ f'{key}={value}' for key, value in payloads.items() ] )
-		response = requests.get(request_url, headers = NBA_STATIC_HEADERS, stream = True, timeout = 6000)
+		response = requests.get(url = request_url, headers = NBA_STATIC_HEADERS, stream = True, timeout = 6000)
 		return response.json()
 	except Exception as ex:
 		return { 'data' : { 'error' : ex } }
@@ -962,8 +964,8 @@ def List_NBA_League_Standings() -> dict:
 @st.cache
 def List_NBA_Player_Awards(player_id: int) -> dict:
 	try:
-		request_ur: str = f'{NBA_BASE_URL}/stats/playerawards?PlayerID={player_id}'
-		response = requests.get(request_url, headers = NBA_STATIC_HEADERS, stream = True, timeout = 6000)
+		request_url: str = f'{NBA_BASE_URL}/stats/playerawards?PlayerID={player_id}'
+		response = requests.get(url = request_url, headers = NBA_STATIC_HEADERS, stream = True, timeout = 6000)
 		return response.json()
 	except Exception as ex:
 		return { 'data' : { 'error' : ex } }
@@ -975,7 +977,7 @@ def List_NBA_Alltime_Leaders(limit: int) -> dict:
 		payloads: str = { 'LeagueID': '00', 'PerMode': 'Totals', 'SeasonType': 'Regular+Season', 'TopX': int(limit)}
 		request_url: str = f'{NBA_BASE_URL}/stats/alltimeleadersgrids?' + \
 			'&'.join( [ f'{key}={value}' for key, value in payloads.items() ] )
-		response = requests.get(request_url, headers = NBA_STATIC_HEADERS, stream = True, timeout = 6000)
+		response = requests.get(rul = request_url, headers = NBA_STATIC_HEADERS, stream = True, timeout = 6000)
 		return response.json()
 	except Exception as ex:
 		return { 'data' : { 'error' : ex } }
@@ -987,7 +989,7 @@ def List_NBA_Team_Yearly_Stats(team_id: int) -> dict:
 		payloads: dict = { 'LeagueID': '00', 'PerMode': 'Totals', 'SeasonType': 'Regular+Season', 'TeamID': int(team_id)}
 		request_url: str = f'{NBA_BASE_URL}/stats/teamyearbyyearstats?' + \
 			'&'.join( [ f'{key}={value}' for key, value in payloads.items() ] )
-		response = requests.get(request_url, headers = NBA_STATIC_HEADERS, stream = True, timeout = 6000)
+		response = requests.get(url = request_url, headers = NBA_STATIC_HEADERS, stream = True, timeout = 6000)
 		return response.json()
 	except Exception as ex:
 		return { 'data' : { 'error' : ex } }
@@ -999,14 +1001,14 @@ def NFL_Players_List() -> dict:
 		dataset: list = []
 		for letter in list(string.ascii_uppercase):
 			df_1 = pandas.read_html(f'{NFL_BASE_URL}/players/active/{letter}')[0]
-			page = soup(requests.get(f'{NFL_BASE_URL}/players/active/{letter}').text, 'lxml')
+			page = soup(markup = requests.get(f'{NFL_BASE_URL}/players/active/{letter}').text, features = 'lxml')
 			if next_page := page.find('a', class_ = 'nfl-o-table-pagination__next'):
 				df_2 = pandas.read_html(f"{NFL_BASE_URL}{next_page.get('href')}" )[0]
-				dataframe = pandas.concat([df_1, df_2])
+				dataframe = pandas.concat(objs = [df_1, df_2])
 			else:
 				dataframe = df_1
-			dataset.append(dataframe)
-		return pandas.concat(dataset, axis = 0)
+			dataset.append( dataframe )
+		return pandas.concat(objs = dataset, axis = 0)
 	except Exception as ex:
 		return {'error': ex}
 
@@ -1016,7 +1018,7 @@ def NFL_Players_List() -> dict:
 def EXECUTE_MAIN() -> None:
 	st.sidebar.subheader('About Me')
 	st.sidebar.info('''
-		Developed by AkashJeez :) \
+		Developed by AkashJeez :) \n
 		Feel Free to Reach Out to Me Via \n
 		[ << Website >> ] ( https://akashjeez.herokuapp.com/ ) \n
 		[ << Blogspot >> ] ( https://akashjeez.blogspot.com/ ) \n
@@ -1029,7 +1031,7 @@ def EXECUTE_MAIN() -> None:
 
 	col_1, col_2, col_3 = st.beta_columns((2, 2, 2))
 
-	MAIN_CATEGORY: str = col_1.selectbox(label = 'Choose Sports League', options = list(MAIN_CATEGORIES) )
+	MAIN_CATEGORY: str = col_1.selectbox(label = 'Select Sports League', options = list(MAIN_CATEGORIES) )
 
 	st.write('*' * 100)
 
@@ -1052,20 +1054,19 @@ def EXECUTE_MAIN() -> None:
 			st.error(f'\n ** Error: {ex} **')
 
 
-	if MAIN_CATEGORY == 'MLB League':
+	elif MAIN_CATEGORY == 'MLB League':
 		SUB_CATEGORY: str = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['MLB League'])
 
 		if SUB_CATEGORY == 'About MLB':
 			st.subheader('** About MLB **')
-			st.write(""" The Major League Baseball (MLB) is an American Professional Baseball Organization and The 
-				Oldest of the Major Professional Sports Leagues in the United States and Canada. A Total of 30 Teams 
-				Play in Major League Baseball: 15 Teams in the National League (NL) and 15 in the American League (AL).
-				The NL and AL were Formed as Separate Legal Entities in 1876 and 1901 Respectively. Beginning in 1903, 
-				the Two Leagues Cooperated But Remained Legally Separate Entities. Both leagues Operated as Legally 
-				Separate Entities Until They Merged into a Single Organization Led by the Commissioner of Baseball in 
-				2000. MLB also Oversees Minor League Baseball, Which Comprises 256 Teams Affiliated With the Major 
-				League Clubs. MLB and the World Baseball Softball Confederation Jointly Manage the International World 
-				Baseball Classic tournament.""")
+			st.write(''' The Major League Baseball (MLB) is an American Professional Baseball Organization and The Oldest of the 
+				Major Professional Sports Leagues in the United States and Canada. A Total of 30 Teams Play in Major League Baseball: 
+				15 Teams in the National League (NL) and 15 in the American League (AL). The NL and AL were Formed as Separate Legal 
+				Entities in 1876 and 1901 Respectively. Beginning in 1903, the Two Leagues Cooperated But Remained Legally Separate 
+				Entities. Both leagues Operated as Legally Separate Entities Until They Merged into a Single Organization Led by the 
+				Commissioner of Baseball in 2000. MLB also Oversees Minor League Baseball, Which Comprises 256 Teams Affiliated With 
+				the Major League Clubs. MLB and the World Baseball Softball Confederation Jointly Manage the International World 
+				Baseball Classic tournament. ''')
 			st.markdown( body = f"<img src = 'https://www.mlbstatic.com/team-logos/league-on-dark/1.svg' width = 700 \
 				height = 400>", unsafe_allow_html = True )
 
@@ -1450,7 +1451,7 @@ def EXECUTE_MAIN() -> None:
 				st.subheader('** NFL Players **')
 				dataset = NFL_Players_List()
 				st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
-				team_name: str = col_2.selectbox(label = 'Select NFL Team', options = list( set( dataset['Current Team'].unique() ) ) )
+				team_name: str = col_3.selectbox(label = 'Select NFL Team', options = list( set( dataset['Current Team'].unique() ) ) )
 				st.dataframe( data = dataset[ dataset['Current Team'] == team_name ] )
 			except Exception as ex:
 				st.write(f'\n ** Error : { ex } **')
@@ -1458,9 +1459,9 @@ def EXECUTE_MAIN() -> None:
 		elif SUB_CATEGORY == 'NFL Standings':
 			try:
 				st.subheader('** NFL Standings **')
-				year: int = col_1.slider(label = 'Select Year', min_value = 1950, max_value = datetime.now().year,
+				category: str = col_3.selectbox(label = 'Select Category', options = ('Division', 'Conference', 'League') )
+				year: int = st.slider(label = 'Select Year', min_value = 1950, max_value = datetime.now().year,
 					value = (datetime.now() - timedelta(days = 365)).year, step = 1 )
-				category: str = col_2.selectbox(label = 'Choose Category', options = ('Division', 'Conference', 'League') )
 				data_dump = pandas.read_html(f'{NFL_BASE_URL}/standings/{category}/{year}/REG')
 				for dataset in data_dump:
 					st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
@@ -1471,11 +1472,31 @@ def EXECUTE_MAIN() -> None:
 		elif SUB_CATEGORY == 'NFL Team Stats':
 			try:
 				st.subheader('** NFL Team Stats **')
-				year: int = col_1.slider(label = 'Select Year', min_value = 1950, max_value = datetime.now().year,
+				filter_1: str = col_1.selectbox(label = 'Select Filter 1', options = ('Offense', 'Defence', 'Special-Teams') )
+				filter_2: str = col_2.selectbox(label = 'Select Filter 2', options = ('Passing', 'Rushing', 'Receiving', 'Scoring', 'Downs',
+					'Field-Goals', 'Kickoffs', 'Kickoff-Returns', 'Punt-Returns') )
+				year: int = col_3.slider(label = 'Select Year', min_value = 1950, max_value = datetime.now().year,
 					value = (datetime.now() - timedelta(days = 365)).year, step = 1 )
-				filter_1: str = col_3.selectbox(label = 'Choose Filter 1', options = ('Offense', 'Defence') )
-				filter_2: str = col_2.selectbox(label = 'Choose Filter 2', options = ('Passing', 'Rushing', 'Receiving', 'Scoring', 'Downs') )
-				dataset = pandas.read_html(f'{NFL_BASE_URL}/stats/team-stats/{filter_1}/{filter_2}/{year}/REG/all')[0]
+				try:
+					dataset = pandas.read_html(f'{NFL_BASE_URL}/stats/team-stats/{filter_1}/{filter_2}/{year}/REG/all')[0]
+				except:
+					dataset = pandas.DataFrame( data = [] )
+				st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
+				st.dataframe( data = dataset )
+			except Exception as ex:
+				st.write(f'\n ** Error : { ex } **')
+
+		elif SUB_CATEGORY == 'NFL Player Stats':
+			try:
+				st.subheader('** NFL Player Stats **')
+				categories: dict = {'Passing': 'PassingYards', 'Rushing': 'RushingYards', 'Receiving': 'ReceivingReceptions',
+					'Fumble': 'DefensiveForcedFumble', 'Tackles': 'DefensiveCombineTackles', 'Interceptions': 'DefensiveInterceptions',
+					'Field-Goals': 'KickingFGMade', 'Kickoffs': 'KickoffTotal', 'Kickoff-Returns': 'KickReturnAverageYards',
+					'Punts': 'PuntingAverageYards', 'Punt-Returns': 'PuntReturnsAverageYards'} 
+				filter_1: str = col_3.selectbox(label = 'Select Stats Category', options = list(categories.keys()) )
+				filter_2: int = st.slider(label = 'Select Year', min_value = 1950, max_value = datetime.now().year,
+					value = (datetime.now() - timedelta(days = 365)).year, step = 1 )
+				dataset = pandas.read_html(f'{NFL_BASE_URL}/stats/player-stats/category/{filter_1}/{filter_2}/REG/all/{categories[filter_1]}/desc')[0]
 				st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
@@ -1492,10 +1513,10 @@ def EXECUTE_MAIN() -> None:
 			if SUB_CATEGORY == 'About IPL':
 				try:
 					st.subheader('** About IPL **')
-					st.write(""" The Indian Premier League (IPL) is a Professional Twenty20 Cricket League in India Contested 
+					st.write(''' The Indian Premier League (IPL) is a Professional Twenty20 Cricket League in India Contested 
 						During March or April and May of Every Year by 8 Teams Representing 8 Different Cities (or) States in India.
 						The League was Founded by The Board of Control for Cricket in India (BCCI) in 2008. The IPL has an Exclusive 
-						Window in ICC Future Tours Programme.""")
+						Window in ICC Future Tours Programme. ''')
 					st.subheader('** IPL Teams **')
 					dataset = pandas.DataFrame( data = IPL_TEAMS )
 					st.markdown( body = f"<img src = 'https://miro.medium.com/max/626/0*BAwYmCO5tos8RCO1.png' width = 700 \
@@ -1683,7 +1704,7 @@ def EXECUTE_MAIN() -> None:
 					Championship of One Day International (ODI) Cricket. The Event is Organised By The Sport's Governing Body, 
 					The International Cricket Council (ICC), Every 4 Years, with Preliminary Qualification Rounds Leading Up 
 					to a Finals Tournament. The tournament is One of The World's Most Viewed Sporting Events and is Considered 
-					the 'Flagship Event of The Tnternational Cricket Calendar' by the ICC. ''')
+					the Flagship Event of The Tnternational Cricket Calendar' by the ICC. ''')
 				st.markdown( body = f"<img src = 'https://tinyurl.com/y5mwtglb' width = 700 height = 400>", unsafe_allow_html = True )
 				dataset = pandas.DataFrame( data = [] )
 
