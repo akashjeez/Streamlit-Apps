@@ -22,13 +22,38 @@ st.title(body = 'PySportsL€agu€')
 ## https://static.nfl.com/liveupdate/game-center/2020101600/2020101600_gtd.json
 ## https://static.nfl.com/ajax/scorestrip?season=2020&seasonType=REG&week=1
 
+CATEGORIES: dict = {
+	'Catalog': None,
+	'MLB League': ('About MLB', 'MLB Alumnis', 'MLB Attendances', 'MLB DataCasters', 'MLB Divisions', 'MLB Drafts', 
+		'MLB League Standings', 'MLB Leagues', 'MLB Players', 'MLB Schedule', 'MLB Sports', 'MLB Team Coaches', 
+		'MLB Team Personnel', 'MLB Team Rosters', 'MLB Teams', 'MLB Umpires', 'MLB Venues', ),
+	'NBA League': ('About NBA', 'NBA All Time Leaders', 'NBA League Players', 'NBA League Standings', 
+		'NBA Player Profile', 'NBA Players', 'NBA ScoreBoard', 'NBA Team Yearly Stats', 'NBA Teams', ),
+	'NFL League': ('About NFL', 'NFL Player Stats', 'NFL Players', 'NFL Standings', 'NFL Team Stats', 'NFL Teams', ),
+	'Cricket Stats': ('Cricket Stats', ),
+	'Cricket IPL Stats': ('Best Batting Average', 'Best Bowling Average', 'Best Bowling Average Strike Rate', 
+		'Best Bowling Average Strike Rate in Innings', 'Best Bowling Economy', 'Best Bowling in Innings', 'Best Strike Rate', 
+		'Best Strike Rate in Innings', 'Fastest Centuries', 'Fastest Fifties', 'Highest Scores', 'IPL Winners', 'Most 4 Wickets', 
+		'Most Centuries', 'Most Dot Balls', 'Most Fifties', 'Most Fours', 'Most Maiden Overs', 'Most Runs', 'Most Runs Conceded', 
+		'Most Sixes', 'Most Sixes in Innings', 'Most Wickets', 'Points Table', ),
+	'Cricket ICC Rankings': ('ODI Player All-Rounder Stats', 'ODI Player Batting Stats', 'ODI Player Bowling Stats', 'ODI Team Stats', 
+		'T20I Player All-Rounder Stats', 'T20I Player Batting Stats', 'T20I Player Bowling Stats', 'T20I Team Stats', 
+		'Test Player All-Rounder Stats', 'Test Player Batting Stats', 'Test Player Bowling Stats', 'Test Team Stats', ),
+	'Cricket WC Stats': ('About Cricket World Cup', 'Best Batting Average', 'Best Batting Strike Rate', 
+		'Best Batting Strike Rate Innings', 'Best Bowling Average', 'Best Bowling Economy', 'Best Bowling Economy Innings', 
+		'Best Bowling Figures', 'Best Bowling Strike Rate', 'Best Bowling Strike Rate Innings', 'Best Win Percetage', 
+		'Fastest Centuries', 'Fastest Fifties', 'Highest Match Aggregate', 'Highest Scores', 'ICC Cricket World Cup Winners', 
+		'Largest Victories Runs', 'Largest Victories Wickets', 'Most Centuries', 'Most Dot Balls', 'Most Dot Balls Innings', 
+		'Most Fifties', 'Most Fours', 'Most Losses', 'Most Maidens', 'Most Runs', 'Most Sixes', 'Most Wickets', 'Most Wins', ),
+}
+
 MLB_BASE_URL: str = 'https://statsapi.mlb.com'
 NBA_BASE_URL: str = 'https://stats.nba.com'
 NFL_BASE_URL: str = 'https://nfl.com'
 IPL_BASE_URL: str = 'https://iplt20.com/stats'
 ICC_BASE_URL: str = 'https://icc-cricket.com/rankings/mens'
 ICC_CWC_BASE_URL: str = 'https://cricketworldcup.com/stats'
-CRICKET_STATS_BASE_URL = 'https://stats.espncricinfo.com/ci/engine/records/{}'
+CRICKET_STATS_BASE_URL: str = 'https://stats.espncricinfo.com/ci/engine/records/{}'
 
 ## Static Headers for NBA League.
 NBA_STATIC_HEADERS: dict = {
@@ -89,46 +114,6 @@ IPL_TEAMS: list = [
 	{'Team_name': 'Royal Challengers Bangalore', 'City': 'Bengaluru, Karnataka', 'Home_Ground': 'M. Chinnaswamy Stadium'},
 	{'Team_name': 'Sunrisers Hyderabad', 'City': 'Hyderabad, Telangana', 'Home_Ground': 'Rajiv Gandhi International Cricket Stadium'},
 ]
-
-MLB_CATEGORIES_LIST: list = ['About MLB', 'MLB Teams', 'MLB Sports', 'MLB Players', 'MLB Leagues', 'MLB Schedule',
-	'MLB Team Rosters', 'MLB Team Personnel', 'MLB Team Coaches', 'MLB Attendances', 'MLB Venues', 'MLB Alumnis',
-	'MLB League Standings', 'MLB Divisions', 'MLB Drafts', 'MLB Umpires', 'MLB DataCasters', ]
-NBA_CATEGORIES_LIST: list = ['About NBA', 'NBA Teams', 'NBA Players', 'NBA Player Profile', 'NBA ScoreBoard',
-	'NBA League Players', 'NBA League Standings', 'NBA All Time Leaders', 'NBA Team Yearly Stats', ]
-NFL_CATEGORIES_LIST: list = ['About NFL', 'NFL Teams', 'NFL Standings', 'NFL Team Stats', 'NFL Players', 
-	'NFL Player Stats', ]
-IPL_CATEGORIES_LIST: list = ['IPL Winners', 'Most Runs', 'Most Sixes', 'Most Sixes in Innings', 'Highest Scores', 
-	'Points Table', 'Best Strike Rate', 'Best Strike Rate in Innings', 'Best Batting Average', 'Most Fifties', 
-	'Most Centuries', 'Most Fours', 'Fastest Fifties', 'Fastest Centuries', 'Most Wickets', 'Best Bowling in Innings', 
-	'Most Dot Balls', 'Best Bowling Average', 'Best Bowling Economy', 'Most Runs Conceded', 'Most Maiden Overs', 
-	'Most 4 Wickets', 'Best Bowling Average Strike Rate in Innings', 'Best Bowling Average Strike Rate' ]
-ICC_CATEGORIES_LIST: list = ['Test Team Stats', 'Test Player Batting Stats', 'Test Player Bowling Stats', 
-	'Test Player All-Rounder Stats', 'ODI Team Stats', 'ODI Player Batting Stats', 'ODI Player Bowling Stats', 
-	'ODI Player All-Rounder Stats', 'T20I Team Stats', 'T20I Player Batting Stats', 'T20I Player Bowling Stats', 
-	'T20I Player All-Rounder Stats', ]
-ICC_CWC_CATEGORIES_LIST: list = ['About Cricket World Cup', 'Most Runs', 'Highest Scores', 'Best Batting Average', 
-	'Best Batting Strike Rate', 'Best Batting Strike Rate Innings', 'Most Centuries', 'Fastest Centuries', 'Most Fifties', 
-	'Fastest Fifties', 'Most Sixes', 'Most Fours', 'Best Bowling Average','Best Bowling Economy', 'Best Win Percetage', 
-	'Best Bowling Economy Innings', 'Best Bowling Strike Rate', 'Best Bowling Strike Rate Innings', 'Most Wickets', 
-	'Best Bowling Figures', 'Most Maidens', 'Most Dot Balls', 'Most Dot Balls Innings', 'Most Wins', 'Most Losses', 
-	'Highest Match Aggregate', 'Largest Victories Runs', 'Largest Victories Wickets', 'ICC Cricket World Cup Winners']
-
-MLB_CATEGORIES_LIST.sort()
-NBA_CATEGORIES_LIST.sort()
-NFL_CATEGORIES_LIST.sort()
-IPL_CATEGORIES_LIST.sort()
-ICC_CATEGORIES_LIST.sort()
-ICC_CWC_CATEGORIES_LIST.sort()
-
-MAIN_CATEGORIES: dict = {
-	'MLB League': MLB_CATEGORIES_LIST,
-	'NBA League': NBA_CATEGORIES_LIST,
-	'NFL League': NFL_CATEGORIES_LIST,
-	'Cricket Stats': None,
-	'Cricket IPL Stats': IPL_CATEGORIES_LIST,
-	'Cricket ICC Rankings': ICC_CATEGORIES_LIST,
-	'Cricket WC Stats': ICC_CWC_CATEGORIES_LIST,
-}
 
 #----------------------------------------------------------------------------------------------------------------------#
 
@@ -822,7 +807,6 @@ def List_MLB_Drafts() -> dict:
 							'Spring_League_Name': data['team']['springLeague'].get('name', 'TBD'),
 							'Spring_League_Link': f"{ MLB_BASE_URL } { data['team']['springLeague'].get('link', 'TBD') }",
 						})
-				print('\n', data_dump)
 				dataset.append( data_dump )
 		return { 'count' : len(dataset), 'data' : dataset }
 	except Exception as ex:
@@ -1014,42 +998,48 @@ def EXECUTE_MAIN() -> None:
 	st.sidebar.info('''
 		Developed by AkashJeez :) \n
 		Feel Free to Reach Out to Me Via \n
-		[ << Website >> ] ( https://akashjeez.herokuapp.com/ ) \n
-		[ << Blogspot >> ] ( https://akashjeez.blogspot.com/ ) \n
+		[ << Website >>   ] ( https://akashjeez.herokuapp.com/ ) \n
+		[ << Blogspot >>  ] ( https://akashjeez.blogspot.com/ ) \n
 		[ << Instagram >> ] ( https://instagram.com/akashjeez/ ) \n
-		[ << Twitter >> ] ( https://twitter.com/akashjeez/ ) \n
-		[ << Github >> ] ( https://github.com/akashjeez/ ) \n
-		[ << Tubmlr >> ] ( https://akashjeez.tumblr.com/ ) \n
-		[ << LinkedIn >> ] ( https://linkedin.com/in/akash-ponnurangam-408363125/ ) \n
+		[ << Twitter >>   ] ( https://twitter.com/akashjeez/ ) \n
+		[ << Github >>    ] ( https://github.com/akashjeez/ ) \n
+		[ << Dev.to >>    ] ( https://dev.to/akashjeez/ ) \n
+		[ << LinkedIn >>  ] ( https://linkedin.com/in/akash-ponnurangam-408363125/ ) \n
 	''')
 
-	col_1, col_2, col_3 = st.beta_columns((2, 2, 2))
+	col_1, col_2 = st.beta_columns((2, 2))
+	CATEGORY: str = col_1.selectbox(label = 'Choose Category', options = list(CATEGORIES.keys()) )
+	st.write('*' * 50)
 
-	MAIN_CATEGORY: str = col_1.selectbox(label = 'Select Sports League', options = list(MAIN_CATEGORIES) )
+	if CATEGORY == 'Catalog':
+		st.write('** Catalog ** Page Shows the List of Micro Apps Based on Category & Sub-Category in this Web Application.')
+		st.table( data = [{'CATEGORY': key, 'SUB_CATEGORY': data} for key, value in CATEGORIES.items() \
+			if value is not None for data in value] )
 
-	st.write('*' * 100)
+	elif CATEGORY == 'Cricket Stats':
+		SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
 
-	if MAIN_CATEGORY == 'Cricket Stats':
-		try:
-			st.subheader('** Cricket Stats **')
-			dataset = Cricket_Stats()
-			st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
-			with st.beta_expander(label = 'List of Cricket Stats Categories?', expanded = False):
+		if SUB_CATEGORY == 'Cricket Stats':
+			try:
+				st.subheader('** Cricket Stats **')
+				dataset = Cricket_Stats()
+				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				with st.beta_expander(label = 'List of Cricket Stats Categories?', expanded = False):
+					st.dataframe( data = dataset )
+				category: str = col_2.selectbox(label = 'Choose Category', options = list(dataset.category.unique()) )
+				dataset = dataset[ dataset.category == category ]
+				sub_category: str = col_3.selectbox(label = 'Choose Sub Category', options = list(dataset.sub_category.unique()) )
+				dataset = dataset[ dataset.sub_category == sub_category ]
+				dataset = pandas.read_html( CRICKET_STATS_BASE_URL.format(f'{ list( dataset.sub_category_id )[0] }.html') )[0]
+				dataset.fillna('TBD', inplace = True)
+				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
-			category: str = col_2.selectbox(label = 'Choose Category', options = list(dataset.category.unique()) )
-			dataset = dataset[ dataset.category == category ]
-			sub_category: str = col_3.selectbox(label = 'Choose Sub Category', options = list(dataset.sub_category.unique()) )
-			dataset = dataset[ dataset.sub_category == sub_category ]
-			dataset = pandas.read_html( CRICKET_STATS_BASE_URL.format(f'{ list( dataset.sub_category_id )[0] }.html') )[0]
-			dataset.fillna('TBD', inplace = True)
-			st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
-			st.dataframe( data = dataset )
-		except Exception as ex:
-			st.error(f'\n ** Error: {ex} **')
+			except Exception as ex:
+				st.error(f'** Error : ** { ex } ')
 
 
-	elif MAIN_CATEGORY == 'MLB League':
-		SUB_CATEGORY: str = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['MLB League'])
+	elif CATEGORY == 'MLB League':
+		SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
 
 		if SUB_CATEGORY == 'About MLB':
 			st.subheader('** About MLB **')
@@ -1072,7 +1062,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Sports':
 			try:
@@ -1082,7 +1072,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Players':
 			try:
@@ -1095,7 +1085,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Leagues':
 			try:
@@ -1105,7 +1095,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Divisions':
 			try:
@@ -1115,7 +1105,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Schedule':
 			try:
@@ -1132,7 +1122,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Team Rosters':
 			try:
@@ -1145,7 +1135,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Team Personnel':
 			try:
@@ -1158,7 +1148,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Team Coaches':
 			try:
@@ -1171,7 +1161,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Attendances':
 			try:
@@ -1184,7 +1174,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Venues':
 			try:
@@ -1194,7 +1184,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Alumnis':
 			try:
@@ -1207,7 +1197,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB League Standings':
 			try:
@@ -1220,7 +1210,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Drafts':
 			try:
@@ -1230,7 +1220,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Umpires':
 			try:
@@ -1240,7 +1230,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB DataCasters':
 			try:
@@ -1250,11 +1240,11 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 
-	elif MAIN_CATEGORY == 'NBA League':
-		SUB_CATEGORY: str = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['NBA League'])
+	elif CATEGORY == 'NBA League':
+		SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
 
 		if SUB_CATEGORY == 'About NBA':
 			st.subheader('** About NBA **')
@@ -1279,7 +1269,7 @@ def EXECUTE_MAIN() -> None:
 					values = 'Team_Name', aggfunc = 'count', fill_value = 0)
 				st.dataframe( data = pivot_conference )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'NBA Players':
 			try:
@@ -1290,7 +1280,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'NBA Player Profile':
 			try:
@@ -1316,7 +1306,7 @@ def EXECUTE_MAIN() -> None:
 						st.markdown( body = Excel_Downloader( df = data_frame ), unsafe_allow_html = True)
 						st.dataframe( data = data_frame )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'NBA League Players':
 			try:
@@ -1326,7 +1316,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'NBA ScoreBoard':
 			try:
@@ -1342,7 +1332,7 @@ def EXECUTE_MAIN() -> None:
 						st.markdown( body = Excel_Downloader( df = data_frame ), unsafe_allow_html = True)
 						st.dataframe( data = data_frame )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'NBA League Standings':
 			try:
@@ -1362,7 +1352,7 @@ def EXECUTE_MAIN() -> None:
 					conference = col_2.multiselect(label = 'Select Conference(s)', options = options, default = default )
 					st.dataframe( dataset[ dataset.Conference.isin(conference) ] )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'NBA All Time Leaders':
 			try:
@@ -1380,7 +1370,7 @@ def EXECUTE_MAIN() -> None:
 					st.markdown( body = Excel_Downloader( df = data_frame ), unsafe_allow_html = True)
 					st.dataframe( data = data_frame )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'NBA Team Yearly Stats':
 			try:
@@ -1401,11 +1391,11 @@ def EXECUTE_MAIN() -> None:
 							values = 'TEAM_NAME', aggfunc = 'count', fill_value = 0)
 						st.dataframe( data = pivot_titles )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 
-	elif MAIN_CATEGORY == 'NFL League':
-		SUB_CATEGORY: str = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['NFL League'])
+	elif CATEGORY == 'NFL League':
+		SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
 
 		if SUB_CATEGORY == 'About NFL':
 			st.subheader('** About NFL **')
@@ -1438,7 +1428,7 @@ def EXECUTE_MAIN() -> None:
 					values = 'Team_Name', aggfunc = 'count', fill_value = 0)
 				col_2.dataframe( data = pivot_conference )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'NFL Players':
 			try:
@@ -1448,7 +1438,7 @@ def EXECUTE_MAIN() -> None:
 				team_name: str = col_3.selectbox(label = 'Select NFL Team', options = list( set( dataset['Current Team'].unique() ) ) )
 				st.dataframe( data = dataset[ dataset['Current Team'] == team_name ] )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'NFL Standings':
 			try:
@@ -1461,7 +1451,7 @@ def EXECUTE_MAIN() -> None:
 					st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
 					st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'NFL Team Stats':
 			try:
@@ -1478,7 +1468,7 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 		elif SUB_CATEGORY == 'NFL Player Stats':
 			try:
@@ -1494,12 +1484,12 @@ def EXECUTE_MAIN() -> None:
 				st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 
-	elif MAIN_CATEGORY == 'Cricket IPL Stats':
+	elif CATEGORY == 'Cricket IPL Stats':
 		try:
-			SUB_CATEGORY: str = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['Cricket IPL Stats'])
+			SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
 			options: list = ['all-time'] + [data for data in range(2008, datetime.now().year + 1)]
 			IPL_Category: str = col_3.selectbox(label = 'Select IPL Year / All-Time ?', options = options)
 			BASE_URL: str = f'{IPL_BASE_URL}/{IPL_Category}'
@@ -1516,7 +1506,7 @@ def EXECUTE_MAIN() -> None:
 					st.markdown( body = f"<img src = 'https://miro.medium.com/max/626/0*BAwYmCO5tos8RCO1.png' width = 700 \
 						height = 400>", unsafe_allow_html = True )
 				except Exception as ex:
-					st.write(f'\n ** Error : { ex } **')
+					st.error(f'** Error : ** { ex } ')
 
 			elif SUB_CATEGORY == 'IPL Winners':
 				try:
@@ -1527,7 +1517,7 @@ def EXECUTE_MAIN() -> None:
 					dataset = dataset[1 : ] 
 					dataset.columns = new_header
 				except Exception as ex:
-					st.write(f'\n ** Error : { ex } **')
+					st.error(f'** Error : ** { ex } ')
 
 			elif SUB_CATEGORY == 'Most Runs':	
 				st.subheader('** Most Runs **')
@@ -1627,12 +1617,12 @@ def EXECUTE_MAIN() -> None:
 			st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 			st.dataframe( data = dataset )
 		except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 
-	elif MAIN_CATEGORY == 'Cricket ICC Rankings':
+	elif CATEGORY == 'Cricket ICC Rankings':
 		try:
-			SUB_CATEGORY: str = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['Cricket ICC Rankings'])
+			SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
 
 			if SUB_CATEGORY == 'Test Team Stats':
 				st.write('** Test Team Stats **')
@@ -1685,12 +1675,12 @@ def EXECUTE_MAIN() -> None:
 			st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 			st.dataframe( data = dataset )
 		except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 
-	elif MAIN_CATEGORY == 'Cricket WC Stats':
+	elif CATEGORY == 'Cricket WC Stats':
 		try:
-			SUB_CATEGORY: str = col_2.selectbox(label = 'Select Sub Category', options = MAIN_CATEGORIES['Cricket WC Stats'])
+			SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
 
 			if SUB_CATEGORY == 'About Cricket World Cup':
 				st.write('** About Cricket World Cup **')
@@ -1821,7 +1811,7 @@ def EXECUTE_MAIN() -> None:
 			st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 			st.dataframe( data = dataset )
 		except Exception as ex:
-				st.write(f'\n ** Error : { ex } **')
+				st.error(f'** Error : ** { ex } ')
 
 #----------------------------------------------------------------------------------------------------------------------#
 

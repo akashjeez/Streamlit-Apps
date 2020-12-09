@@ -16,13 +16,11 @@ st.title(body = 'PY☢P€NCV')
 
 #----------------------------------------------------------------------------------------------------------------------#
 
-MAIN_CATEGORIES: list = ['Image Analysis', 'Video Analysis']
-
-IMAGE_CATEGORIES: list = ['Read Image', 'Face Detection', 'Eye Detection', 'Smile Detection', 'Pencil Sketch', ]
-VIDEO_CATEGORIES: list = []
-
-IMAGE_CATEGORIES.sort()
-VIDEO_CATEGORIES.sort()
+CATEGORIES: dict = {
+	'Catalog': None,
+	'Image Analysis': ('Read Image', 'Face Detection', 'Eye Detection', 'Smile Detection', 'Pencil Sketch', ),
+	'Video Analysis': (),
+}
 
 ## OpenCV - 3 Color Channels
 BLUE, GREEN, RED = (255, 0, 0), (0, 255, 0), (0, 0, 255)
@@ -104,23 +102,26 @@ def EXECUTE_MAIN() -> None:
 	st.sidebar.info('''
 		Developed by AkashJeez :) \n
 		Feel Free to Reach Out to Me Via \n
-		[ << Website >> ] ( https://akashjeez.herokuapp.com/ ) \n
-		[ << Blogspot >> ] ( https://akashjeez.blogspot.com/ ) \n
+		[ << Website >>   ] ( https://akashjeez.herokuapp.com/ ) \n
+		[ << Blogspot >>  ] ( https://akashjeez.blogspot.com/ ) \n
 		[ << Instagram >> ] ( https://instagram.com/akashjeez/ ) \n
-		[ << Twitter >> ] ( https://twitter.com/akashjeez/ ) \n
-		[ << Github >> ] ( https://github.com/akashjeez/ ) \n
-		[ << Tubmlr >> ] ( https://akashjeez.tumblr.com/ ) \n
-		[ << LinkedIn >> ] ( https://linkedin.com/in/akash-ponnurangam-408363125/ ) \n
+		[ << Twitter >>   ] ( https://twitter.com/akashjeez/ ) \n
+		[ << Github >>    ] ( https://github.com/akashjeez/ ) \n
+		[ << Dev.to >>    ] ( https://dev.to/akashjeez/ ) \n
+		[ << LinkedIn >>  ] ( https://linkedin.com/in/akash-ponnurangam-408363125/ ) \n
 	''')
 
 	col_1, col_2 = st.beta_columns((2, 2))
+	CATEGORY: str = col_1.selectbox(label = 'Choose Category', options = list(CATEGORIES.keys()) )
+	st.write('*' * 50)
 
-	CATEGORY: str = col_1.selectbox(label = 'Image / Video Analysis', options = MAIN_CATEGORIES)
+	if CATEGORY == 'Catalog':
+		st.write('** Catalog ** Page Shows the List of Micro Apps Based on Category & Sub-Category in this Web Application.')
+		st.table( data = [{'CATEGORY': key, 'SUB_CATEGORY': data} for key, value in CATEGORIES.items() \
+			if value is not None for data in value] )
 
-	st.write('*' * 100)
-
-	if CATEGORY == 'Image Analysis':
-		SUB_CATEGORY: str = col_2.selectbox(label = 'Select Sub Category', options = IMAGE_CATEGORIES)
+	elif CATEGORY == 'Image Analysis':
+		SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
 
 		if SUB_CATEGORY == 'Read Image':
 			try:
@@ -193,7 +194,8 @@ def EXECUTE_MAIN() -> None:
 
 
 	elif CATEGORY == 'Video Analysis':
-		SUB_CATEGORY: str = col_2.selectbox(label = 'Select Sub Category', options = VIDEO_CATEGORIES)
+		SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
+		st.write('** Coming Soon! **')
 
 
 #----------------------------------------------------------------------------------------------------------------------#
