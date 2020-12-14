@@ -4,7 +4,7 @@ import os, sys, re, time, math, json, pandas, numpy
 import cv2, requests, random, string, base64
 import streamlit as st
 from datetime import datetime, timedelta
-from PIL import Image, ImageEnhance
+from PIL import Image, ImageColor, ImageDraw, ImageEnhance
 from io import BytesIO, TextIOWrapper
 
 #----------------------------------------------------------------------------------------------------------------------#
@@ -18,12 +18,15 @@ st.title(body = 'PY☢P€NCV')
 
 CATEGORIES: dict = {
 	'Catalog': None,
-	'Image Analysis': ('Read Image', 'Face Detection', 'Eye Detection', 'Smile Detection', 'Pencil Sketch', ),
+	'Image Analysis': ('Read Image', 'Face Detection', 'Eye Detection', 'Smile Detection', 'Pencil Sketch', 
+		'Text to Image'),
 	'Video Analysis': (),
 }
 
 ## OpenCV - 3 Color Channels
 BLUE, GREEN, RED = (255, 0, 0), (0, 255, 0), (0, 0, 255)
+
+COLOR_MAPS: dict = { name : code for name, code in ImageColor.colormap.items() }
 
 if os.path.isdir('OpenCV'):
 	face_cascade = cv2.CascadeClassifier('OpenCV/haarcascade_frontalface_default.xml')
@@ -98,15 +101,15 @@ def Pencil_Sketch(input_image):
 #----------------------------------------------------------------------------------------------------------------------#
 
 def EXECUTE_MAIN() -> None:
-	st.sidebar.subheader('About Me')
-	st.sidebar.info('''
+	st.sidebar.subheader(body = 'About Me')
+	st.sidebar.info(body = '''
 		Developed by AkashJeez :) \n
 		Feel Free to Reach Out to Me Via \n
 		[ << Website >>   ] ( https://akashjeez.herokuapp.com/ ) \n
 		[ << Blogspot >>  ] ( https://akashjeez.blogspot.com/ ) \n
 		[ << Instagram >> ] ( https://instagram.com/akashjeez/ ) \n
 		[ << Twitter >>   ] ( https://twitter.com/akashjeez/ ) \n
-		[ << Github >>    ] ( https://github.com/akashjeez/ ) \n
+		[ << GitHub >>    ] ( https://github.com/akashjeez/ ) \n
 		[ << Dev.to >>    ] ( https://dev.to/akashjeez/ ) \n
 		[ << LinkedIn >>  ] ( https://linkedin.com/in/akash-ponnurangam-408363125/ ) \n
 	''')
@@ -189,6 +192,24 @@ def EXECUTE_MAIN() -> None:
 					result_image = Pencil_Sketch( input_image = input_image )
 					st.image(image = input_image, caption = 'Original Image', use_column_width = True)
 					st.image(image = result_image, caption = 'Pencil Sketch', use_column_width = True)
+			except Exception as ex:
+				st.write(f'** Error : ** { ex } ')
+
+		elif SUB_CATEGORY == 'Text to Image':
+			try:
+				st.write('** Text to Image Conversion **')
+				col_1, col_2, col_3 = st.beta_columns((3, 2, 2))
+				Input_Text: str = col_1.text_area(label = 'Enter Your Text', height = 4)
+				Input_BG_Color: str = col_2.selectbox(label = 'Choose Background Color', options = list(set(COLOR_MAPS.keys())) )
+				Input_Size: tuple = col_3.selectbox(label = 'Choose Image Resolution Size', options = [(i, i) for i in range(400, 1600, 100)] )
+				if Input_Text is not None and Input_BG_Color is not None and Input_Size is not None:
+					output = BytesIO()
+					img = Image.new(mode = 'RGB', size = Input_Size, color = Input_BG_Color)
+					draw_text = ImageDraw.Draw(im = img)
+					draw_text.text((15, 15), Input_Text, fill = (255, 255, 0))
+					img.save(fp = output, format = 'png')
+					st.text('Right Click on Image and Save It On Your PC / Laptop / Smartphone!')
+					st.image(image = output.getvalue(), use_column_width = False)
 			except Exception as ex:
 				st.write(f'** Error : ** { ex } ')
 

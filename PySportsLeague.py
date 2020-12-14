@@ -994,15 +994,15 @@ def NFL_Players_List() -> dict:
 #----------------------------------------------------------------------------------------------------------------------#
 
 def EXECUTE_MAIN() -> None:
-	st.sidebar.subheader('About Me')
-	st.sidebar.info('''
+	st.sidebar.subheader(body = 'About Me')
+	st.sidebar.info(body = '''
 		Developed by AkashJeez :) \n
 		Feel Free to Reach Out to Me Via \n
 		[ << Website >>   ] ( https://akashjeez.herokuapp.com/ ) \n
 		[ << Blogspot >>  ] ( https://akashjeez.blogspot.com/ ) \n
 		[ << Instagram >> ] ( https://instagram.com/akashjeez/ ) \n
 		[ << Twitter >>   ] ( https://twitter.com/akashjeez/ ) \n
-		[ << Github >>    ] ( https://github.com/akashjeez/ ) \n
+		[ << GitHub >>    ] ( https://github.com/akashjeez/ ) \n
 		[ << Dev.to >>    ] ( https://dev.to/akashjeez/ ) \n
 		[ << LinkedIn >>  ] ( https://linkedin.com/in/akash-ponnurangam-408363125/ ) \n
 	''')
