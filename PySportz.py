@@ -1076,22 +1076,21 @@ def List_NBA_Coaches() -> dict:
 		dataset, year = [], datetime.now().year
 		NBA_Teams: dict = { str(data.get('ID')) : data.get('Team_Name') for data in NBA_TEAMS }
 		response: dict = requests.get(f'{NBA_BASE_URL_2}/v1/{year}/coaches.json').json()
-		if league := response.get('league'):
-			for data in league.get('standard'):
-				data_dump: dict = {
-					'Team_ID': data.get('teamId', 'TBD'), 'Person_ID': data.get('personId', 'TBD'),
-					'Team_Name': NBA_Teams.get( data.get('teamId', 'TBD'), 'TBD'), 'College': data.get('college', 'TBD'),
-					'First_Name': data.get('firstName', 'TBD'), 'Last_Name': data.get('lastName', 'TBD'),
-					'Is_Assistant': 'Yes' if data.get('isAssistant') == True else 'No',
-				}
-				if 'teamSitesOnly' in data.keys():
-					data_dump.update({
-						'Display_Name': data['teamSitesOnly'].get('displayName', 'TBD'), 
-						'Coach_Code': data['teamSitesOnly'].get('coachCode', 'TBD'),
-						'Coach_Role': data['teamSitesOnly'].get('coachRole', 'TBD'), 
-						'Team_Code': data['teamSitesOnly'].get('teamTricode', 'TBD'),
-					})
-				dataset.append( data_dump )
+		for data in response.get('league').get('standard'):
+			data_dump: dict = {
+				'Team_ID': data.get('teamId', 'TBD'), 'Person_ID': data.get('personId', 'TBD'),
+				'Team_Name': NBA_Teams.get( data.get('teamId', 'TBD'), 'TBD'), 'College': data.get('college', 'TBD'),
+				'First_Name': data.get('firstName', 'TBD'), 'Last_Name': data.get('lastName', 'TBD'),
+				'Is_Assistant': 'Yes' if data.get('isAssistant') == True else 'No',
+			}
+			if 'teamSitesOnly' in data.keys():
+				data_dump.update({
+					'Display_Name': data['teamSitesOnly'].get('displayName', 'TBD'), 
+					'Coach_Code': data['teamSitesOnly'].get('coachCode', 'TBD'),
+					'Coach_Role': data['teamSitesOnly'].get('coachRole', 'TBD'), 
+					'Team_Code': data['teamSitesOnly'].get('teamTricode', 'TBD'),
+				})
+			dataset.append( data_dump )
 		return { 'count' : len(dataset), 'data' : dataset }
 	except Exception as ex:
 		return { 'data' : { 'error' : ex } }
