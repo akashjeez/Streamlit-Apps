@@ -10,7 +10,7 @@ from fake_useragent import UserAgent
 #---------------------------------------------------------------------------------------------------------------------------------#
 
 ## Use the Full Page Instead of Narrow Central Column.
-st.set_page_config(page_title = 'Py$p☢rtz', page_icon = '🏅',layout = 'wide', initial_sidebar_state = 'auto' )
+st.set_page_config(page_title = 'Py$p☢rtz', page_icon = '🏅', layout = 'wide', initial_sidebar_state = 'auto' )
 
 st.title(body = 'Py$p☢rtz')
 
@@ -272,8 +272,8 @@ def List_MLB_Players(sport_id: int) -> dict:
 	try:
 		dataset: list = []
 		response: dict = requests.get(url = f'{MLB_BASE_URL}/api/v1/sports/{sport_id}/players').json()
-		for data in response['people']:
-			data_dump = {
+		for data in response.get('people'):
+			data_dump: dict = {
 				'Player_ID': data.get('id', 'TBD'),
 				'Player_First_Name': data.get('firstName', 'TBD').upper(),
 				'Player_Last_Name': data.get('lastName', 'TBD').upper(),
@@ -331,8 +331,8 @@ def List_MLB_Leagues() -> dict:
 	try:
 		dataset: list = []
 		response: dict = requests.get(url = f'{MLB_BASE_URL}/api/v1/league').json()
-		for data in response['leagues']:
-			data_dump = {
+		for data in response.get('leagues'):
+			data_dump: dict = {
 				'League_ID': data.get('id', 'TBD'),
 				'League_Name': data.get('name', 'TBD'),
 				'League_Link': f"{ MLB_BASE_URL }{ data.get('link', 'TBD') }",
@@ -374,8 +374,8 @@ def List_MLB_Divisions() -> dict:
 	try:
 		dataset: list = []
 		response: dict = requests.get(url = f'{MLB_BASE_URL}/api/v1/divisions').json()
-		for data in response['divisions']:
-			data_dump = {
+		for data in response.get('divisions'):
+			data_dump: dict = {
 				'Division_ID': data.get('id', 'TBD'),
 				'Division_Name': data.get('name', 'TBD').upper(),
 				'Division_Short_Name': data.get('nameShort', 'TBD').upper(),
@@ -408,9 +408,9 @@ def List_MLB_Schedule(sport_id: int = None, start_date: str = None, end_date: st
 		sport_id: int = int(sport_id) if sport_id is not None else 1
 		request_url: str = f'{MLB_BASE_URL}/api/v1/schedule?sportId={sport_id}&startDate={start_date}&endDate={end_date}'
 		response: dict = requests.get( url = request_url ).json()
-		for day in response['dates']:
-			for data in day['games']:
-				data_dump = {
+		for day in response.get('dates'):
+			for data in day.get('games'):
+				data_dump: dict = {
 					'Game_Date': parser.parse( day['date'] ).strftime('%d-%m-%Y') 
 						if 'date' in day.keys() else 'TBD',
 					'Total_Games': day.get('totalGames', 'TBD'),
@@ -496,8 +496,8 @@ def List_MLB_Rosters(team_id: int) -> dict:
 	try:
 		dataset: list = []
 		response: dict = requests.get(url = f'{MLB_BASE_URL}/api/v1/teams/{team_id}/roster').json()
-		for data in response['roster']:
-			data_dump = {
+		for data in response.get('roster'):
+			data_dump: dict = {
 				'Team_id': team_id,
 				'Jersey_Number': data.get('jerseyNumber', 'TBD'),
 				'Position': data.get('position', 'TBD').get('name', 'TBD'),
@@ -520,8 +520,8 @@ def List_MLB_Personnel(team_id: int) -> dict:
 	try:
 		dataset: list = []
 		response: dict = requests.get(url = f'{MLB_BASE_URL}/api/v1/teams/{team_id}/personnel').json()
-		for data in response['roster']:
-			data_dump = {
+		for data in response.get('roster'):
+			data_dump: dict = {
 				'Team_ID': team_id,
 				'Job_ID': data.get('jobId', 'TBD'),
 				'Job_Name': data.get('job', 'TBD'),
@@ -543,8 +543,8 @@ def List_MLB_Coaches(team_id: int) -> dict:
 	try:
 		dataset: list = []
 		response: dict = requests.get(url = f'{MLB_BASE_URL}/api/v1/teams/{team_id}/coaches').json()
-		for data in response['roster']:
-			data_dump = {
+		for data in response.get('roster'):
+			data_dump: dict = {
 				'Team_ID': team_id,
 				'Job_ID': data.get('jobId', 'TBD'),
 				'Job_Name': data.get('job', 'TBD'),
@@ -566,8 +566,8 @@ def List_MLB_Attendances(team_id: int) -> dict:
 	try:
 		dataset: list = []
 		response: dict = requests.get(url = f'{MLB_BASE_URL}/api/v1/attendance?teamId={team_id}').json()
-		for data in response['records']:
-			data_dump = {
+		for data in response.get('records'):
+			data_dump: dict = {
 				'Total_Openings': data.get('openingsTotal', 'TBD'),
 				'Total_Away_Openings': data.get('openingsTotalAway', 'TBD'),
 				'Total_Home_Openings': data.get('openingsTotalHome', 'TBD'),
@@ -607,14 +607,12 @@ def List_MLB_Attendances(team_id: int) -> dict:
 @st.cache
 def List_MLB_Venues() -> dict:
 	try:
-		dataset: list = []
 		response: dict = requests.get(url = f'{MLB_BASE_URL}/api/v1/venues').json()
-		for data in response['venues']:
-			dataset.append({
-				'Venue_ID': data.get('id', 'TBD'),
-				'Venue_Name': data.get('name', 'TBD'),
-				'Venue_Link': f"{ MLB_BASE_URL }{ data.get('link', 'TBD') }",
-			})
+		dataset: list = [{
+			'Venue_ID': data.get('id', 'TBD'),
+			'Venue_Name': data.get('name', 'TBD'),
+			'Venue_Link': f"{ MLB_BASE_URL }{ data.get('link', 'TBD') }",
+		} for data in response.get('venues') ]
 		return { 'count' : len(dataset), 'data' : dataset }
 	except Exception as ex:
 		return { 'data' : { 'error' : ex } }
@@ -625,8 +623,8 @@ def List_MLB_Alumnis(team_id: int) -> dict:
 	try:
 		dataset, season = [], datetime.now().year
 		response: dict = requests.get(url = f'{MLB_BASE_URL}/api/v1/teams/{team_id}/alumni?season={season}').json()
-		for data in response['people']:
-			data_dump = {
+		for data in response.get('people'):
+			data_dump: dict = {
 				'Player_ID': data.get('id', 'TBD'),
 				'Player_First_Name': data.get('firstName', 'TBD').upper(),
 				'Player_Last_Name': data.get('lastName', 'TBD').upper(),
@@ -679,9 +677,9 @@ def List_MLB_League_Standings(league_id: str) -> dict:
 	try:
 		dataset: list = []
 		response: dict = requests.get(url = f'{MLB_BASE_URL}/api/v1/standings?leagueId={league_id}').json()
-		for record in response['records']:
-			for data in record['teamRecords']:
-				data_dump = {
+		for record in response.get('records'):
+			for data in record.get('teamRecords'):
+				data_dump: dict = {
 					'Standing_Type': record.get('standingsType', 'TBD'),
 					'Last_Updated': record.get('lastUpdated', 'TBD'),
 					'Season': data.get('season', 'TBD'),
@@ -769,8 +767,8 @@ def List_MLB_Drafts() -> dict:
 		dataset, year = [], datetime.now().year
 		response: dict = requests.get(url = f'{MLB_BASE_URL}/api/v1/draft/{year}').json()
 		for rounds in response['drafts']['rounds']:
-			for data in rounds['picks']:
-				data_dump = {
+			for data in rounds.get('picks'):
+				data_dump: dict = {
 					'BIS_Player_ID': data.get('bisPlayerId', 'TBD'),
 					'Pick_Round': data.get('pickRound', 'TBD'), 
 					'Pick_Number': data.get('pickNumber', 'TBD'),
@@ -855,8 +853,8 @@ def List_MLB_Umpires() -> dict:
 	try:
 		dataset: list = []
 		response: dict = requests.get(url = f'{MLB_BASE_URL}/api/v1/jobs/umpires').json()
-		for data in response['roster']:
-			data_dump = {
+		for data in response.get('roster'):
+			data_dump: dict = {
 				'Job_ID': data.get('jobId', 'TBD'),
 				'Job_Name': data.get('job', 'TBD'),
 				'Jersey_Number': data.get('jerseyNumber', 'TBD'),
@@ -878,8 +876,8 @@ def List_MLB_DataCasters() -> dict:
 	try:
 		dataset: list = []
 		response: dict = requests.get(url = f'{MLB_BASE_URL}/api/v1/jobs/datacasters').json()
-		for data in response['roster']:
-			data_dump = {
+		for data in response.get('roster'):
+			data_dump: dict = {
 				'Job_ID': data.get('jobId', 'TBD'),
 				'Job_Name': data.get('job', 'TBD'),
 			}
@@ -903,7 +901,7 @@ def List_NBA_Players(team_name: str) -> dict:
 		total_pages: int = temp_response.get('meta', 'TBD').get('total_pages', 1)
 		for i in range(1, int(total_pages) + 1):
 			response: dict = requests.get(url = f'{NBA_BASE_URL}/v1/players?page={i}').json()
-			for data in response['data']:
+			for data in response.get('data'):
 				if data['team']['full_name'] == team_name:
 					dataset.append({
 						'Player_ID': data.get('id', 'TBD'),
@@ -1030,37 +1028,38 @@ def List_NBA_Live_Scoreboard_2(game_date: str) -> dict:
 				'Game_Duration': data.get('gameDuration', 'TBD'),
 				'Attendance': data.get('attendance', 'TBD'),
 			}
-			if visitor_team := data.get('vTeam'):
+			if 'vTeam' in data.keys():
 				data_dump.update({
-					'Visitor_Team_ID': visitor_team.get('teamId', 'TBD'),
-					'Visitor_Team_Name': NBA_Teams.get(visitor_team.get('teamId', 'TBD'), 'TBD'),
-					'Visitor_Team_Code': visitor_team.get('triCode', 'TBD'),
-					'Visitor_Team_Score': visitor_team.get('score', 'TBD'),
-					'Visitor_Team_LineScore': visitor_team.get('linescore', 'TBD')
+					'Visitor_Team_ID': data['vTeam'].get('teamId', 'TBD'),
+					'Visitor_Team_Name': NBA_Teams.get(data['vTeam'].get('teamId', 'TBD'), 'TBD'),
+					'Visitor_Team_Code': data['vTeam'].get('triCode', 'TBD'),
+					'Visitor_Team_Score': data['vTeam'].get('score', 'TBD'),
+					'Visitor_Team_LineScore': data['vTeam'].get('linescore', 'TBD')
 				})
-			if home_team := data.get('hTeam'):
+			if 'hTeam' in data.keys():
 				data_dump.update({
-					'Home_Team_ID': home_team.get('teamId', 'TBD'),
-					'Home_Team_Name': NBA_Teams.get(home_team.get('teamId', 'TBD'), 'TBD'),
-					'Home_Team_Code': home_team.get('triCode', 'TBD'),
-					'Home_Team_Score': home_team.get('score', 'TBD'),
-					'Home_Team_LineScore': home_team.get('linescore', 'TBD')
+					'Home_Team_ID': data['hTeam'].get('teamId', 'TBD'),
+					'Home_Team_Name': NBA_Teams.get(data['hTeam'].get('teamId', 'TBD'), 'TBD'),
+					'Home_Team_Code': data['hTeam'].get('triCode', 'TBD'),
+					'Home_Team_Score': data['hTeam'].get('score', 'TBD'),
+					'Home_Team_LineScore': data['hTeam'].get('linescore', 'TBD')
 				})
-			if tickets := data.get('tickets'):
+			if 'tickets' in data.keys():
 				data_dump.update({
-					'Mobile_App': tickets.get('mobileApp', 'TBD'),
-					'Desktop_Web': tickets.get('desktopWeb', 'TBD'),
-					'Mobile_Web': tickets.get('mobileWeb', 'TBD'),
-					'League_Game_Info': tickets.get('leagGameInfo', 'TBD'),
+					'Mobile_App': data['tickets'].get('mobileApp', 'TBD'),
+					'Desktop_Web': data['tickets'].get('desktopWeb', 'TBD'),
+					'Mobile_Web': data['tickets'].get('mobileWeb', 'TBD'),
+					'League_Game_Info': data['tickets'].get('leagGameInfo', 'TBD'),
 				})
-			if arena := data.get('arena'):
+			if 'arena' in data.keys():
 				data_dump.update({
-					'Arena_Name': arena.get('name', 'TBD'),
-					'Is_Domestic': 'Yes' if arena.get('isDomestic') == True else 'False'\
-						if arena.get('isDomestic') == False else 'TBD',
-					'City': arena.get('city', 'TBD'), 'Country': arena.get('country', 'TBD'),
+					'Arena_Name': data['arena'].get('name', 'TBD'),
+					'Is_Domestic': 'Yes' if data['arena'].get('isDomestic') == True else 'False'\
+						if data['arena'].get('isDomestic') == False else 'TBD',
+					'City': data['arena'].get('city', 'TBD'), 'Country': data['arena'].get('country', 'TBD'),
 				})
-			if broadcasters := data['watch']['broadcast'].get('broadcasters'):
+			if 'broadcasters' in data['watch']['broadcast'].keys():
+				broadcasters = data['watch']['broadcast']['broadcasters']
 				data_dump.update({
 					'VTeam_Broadcaster': [data.get('longName', 'TBD') for data in broadcasters.get('vTeam')],
 					'HTeam_Broadcaster': [data.get('longName', 'TBD') for data in broadcasters.get('hTeam')],
@@ -1085,10 +1084,12 @@ def List_NBA_Coaches() -> dict:
 					'First_Name': data.get('firstName', 'TBD'), 'Last_Name': data.get('lastName', 'TBD'),
 					'Is_Assistant': 'Yes' if data.get('isAssistant') == True else 'No',
 				}
-				if site := data.get('teamSitesOnly'):
+				if 'teamSitesOnly' in data.keys():
 					data_dump.update({
-						'Display_Name': site.get('displayName', 'TBD'), 'Coach_Code': site.get('coachCode', 'TBD'),
-						'Coach_Role': site.get('coachRole', 'TBD'), 'Team_Code': site.get('teamTricode', 'TBD'),
+						'Display_Name': data['teamSitesOnly'].get('displayName', 'TBD'), 
+						'Coach_Code': data['teamSitesOnly'].get('coachCode', 'TBD'),
+						'Coach_Role': data['teamSitesOnly'].get('coachRole', 'TBD'), 
+						'Team_Code': data['teamSitesOnly'].get('teamTricode', 'TBD'),
 					})
 				dataset.append( data_dump )
 		return { 'count' : len(dataset), 'data' : dataset }
