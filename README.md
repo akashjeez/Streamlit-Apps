@@ -15,7 +15,7 @@ Python Streamlit Data Apps
 
 -> ICC Cricket World Cup
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/akashjeez/Streamlit-Apps/main/PySportsLeague.py)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/akashjeez/Streamlit-Apps/main/PySportz.py)
 
 ### App 2 | OpenCV
 
