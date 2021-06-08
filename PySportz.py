@@ -1097,19 +1097,22 @@ def List_NBA_Coaches() -> dict:
 
 #---------------------------------------------------------------------------------------------------------------------------------#
 
-def EXECUTE_MAIN() -> None:
-	st.sidebar.subheader(body = 'About Me')
-	st.sidebar.info(body = '''
-		Developed by AkashJeez :) \n
-		Feel Free to Reach Out to Me Via \n
-		[ << Website >>   ] ( https://akashjeez.herokuapp.com/ ) \n
-		[ << Blogspot >>  ] ( https://akashjeez.blogspot.com/ ) \n
-		[ << Instagram >> ] ( https://instagram.com/akashjeez/ ) \n
-		[ << Twitter >>   ] ( https://twitter.com/akashjeez/ ) \n
-		[ << GitHub >>    ] ( https://github.com/akashjeez/ ) \n
-		[ << Dev.to >>    ] ( https://dev.to/akashjeez/ ) \n
-		[ << LinkedIn >>  ] ( https://linkedin.com/in/akash-ponnurangam-408363125/ ) \n
-	''')
+def Execute_Main() -> None:
+	
+	with st.sidebar:
+		with st.beta_expander(label = 'About Me', expanded = False):
+			st.info(body = '''
+				Developed by AkashJeez :) \n
+				Feel Free to Reach Out to Me Via \n
+				[ << Blogspot >>  ] ( https://akashjeez.blogspot.com/ ) \n
+				[ << Instagram >> ] ( https://instagram.com/akashjeez/ ) \n
+				[ << Twitter >>   ] ( https://twitter.com/akashjeez/ ) \n
+				[ << GitHub >>    ] ( https://github.com/akashjeez/ ) \n
+				[ << Dev.to >>    ] ( https://dev.to/akashjeez/ ) \n
+				[ << Medium >>    ] ( https://akashjeez.medium.com/ ) \n
+				[ << Wordpress >> ] ( https://akashjeez.wordpress.com/ ) \n
+				[ << LinkedIn >>  ] ( https://linkedin.com/in/akash-ponnurangam-408363125/ ) \n
+			''')
 
 	col_1, col_2, col_3 = st.beta_columns((2, 2, 2))
 	CATEGORY: str = col_1.selectbox(label = 'Choose Category', options = list(CATEGORIES.keys()) )
@@ -1946,6 +1949,6 @@ def EXECUTE_MAIN() -> None:
 ## Run the Main Code!
 
 if __name__ == '__main__':
-	EXECUTE_MAIN()
+	Execute_Main()
 
 #---------------------------------------------------------------------------------------------------------------------------------#
