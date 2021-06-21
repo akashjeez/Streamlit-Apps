@@ -2,7 +2,6 @@ __import__ = 'Akashjeez'
 
 try:
     import os, sys, json, json, time
-    import requests, pandas, numpy
     import streamlit as st
     from datetime import datetime, timedelta
 except Exception as ex:
