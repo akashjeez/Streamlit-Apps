@@ -1114,7 +1114,7 @@ def Execute_Main() -> None:
 				[ << LinkedIn >>  ] ( https://linkedin.com/in/akash-ponnurangam-408363125/ ) \n
 			''')
 
-	col_1, col_2, col_3 = st.beta_columns((2, 2, 2))
+	col_1, col_2, col_3 = st.columns((2, 2, 2))
 	CATEGORY: str = col_1.selectbox(label = 'Choose Category', options = list(CATEGORIES.keys()) )
 	st.write('*' * 50)
 

@@ -117,7 +117,7 @@ def Execute_Main() -> None:
 				[ << LinkedIn >>  ] ( https://linkedin.com/in/akash-ponnurangam-408363125/ ) \n
 			''')
 
-	col_1, col_2 = st.beta_columns((2, 2))
+	col_1, col_2 = st.columns((2, 2))
 	CATEGORY: str = col_1.selectbox(label = 'Choose Category', options = list(CATEGORIES.keys()) )
 	st.write('*' * 50)
 
@@ -201,7 +201,7 @@ def Execute_Main() -> None:
 		elif SUB_CATEGORY == 'Text to Image':
 			try:
 				st.write('** Text to Image Conversion **')
-				col_1, col_2, col_3 = st.beta_columns((3, 2, 2))
+				col_1, col_2, col_3 = st.columns((3, 2, 2))
 				Input_Text: str = col_1.text_area(label = 'Enter Your Text', height = 4)
 				Input_BG_Color: str = col_2.selectbox(label = 'Choose Background Color', options = list(set(COLOR_MAPS.keys())) )
 				Input_Size: tuple = col_3.selectbox(label = 'Choose Image Resolution Size', options = [(i, i) for i in range(400, 1600, 100)] )
