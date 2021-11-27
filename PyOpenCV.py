@@ -103,7 +103,7 @@ def Pencil_Sketch(input_image):
 def Execute_Main() -> None:
 
 	with st.sidebar:
-		with st.beta_expander(label = 'About Me', expanded = False):
+		with st.expander(label = 'About Me', expanded = False):
 			st.info(body = '''
 				Developed by AkashJeez :) \n
 				Feel Free to Reach Out to Me Via \n

@@ -1100,7 +1100,7 @@ def List_NBA_Coaches() -> dict:
 def Execute_Main() -> None:
 	
 	with st.sidebar:
-		with st.beta_expander(label = 'About Me', expanded = False):
+		with st.expander(label = 'About Me', expanded = False):
 			st.info(body = '''
 				Developed by AkashJeez :) \n
 				Feel Free to Reach Out to Me Via \n
@@ -1131,7 +1131,7 @@ def Execute_Main() -> None:
 				st.subheader('** Cricket Stats **')
 				dataset = Cricket_Stats()
 				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
-				with st.beta_expander(label = 'List of Cricket Stats Categories?', expanded = False):
+				with st.expander(label = 'List of Cricket Stats Categories?', expanded = False):
 					st.dataframe( data = dataset )
 				category: str = col_2.selectbox(label = 'Choose Category', options = list(dataset.category.unique()) )
 				dataset = dataset[ dataset.category == category ]
