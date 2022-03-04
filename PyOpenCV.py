@@ -1,25 +1,26 @@
 __author__ = 'akashjeez'
 
-import os, sys, re, time, math, json, pandas, numpy
-import cv2, requests, random, string, base64
+import os, sys, re, base64
+import pandas, numpy, cv2, qrcode
+from pyzbar import pyzbar
 import streamlit as st
 from datetime import datetime, timedelta
 from PIL import Image, ImageColor, ImageDraw, ImageEnhance
 from io import BytesIO, TextIOWrapper
 
-#----------------------------------------------------------------------------------------------------------------------#
+#--------------------------------------------------------------------------------------------------------------------------#
 
 ## Use the Full Page Instead of Narrow Central Column.
 st.set_page_config(page_title = 'PY☢P€NCV', page_icon = '🔥', layout = 'wide', initial_sidebar_state = 'auto')
 
 st.title(body = 'PY☢P€NCV')
 
-#----------------------------------------------------------------------------------------------------------------------#
+#--------------------------------------------------------------------------------------------------------------------------#
 
 CATEGORIES: dict = {
 	'Catalog': None,
 	'Image Analysis': ('Read Image', 'Face Detection', 'Eye Detection', 'Smile Detection', 'Pencil Sketch', 
-		'Text to Image'),
+		'QR Code', 'Text to Image', ),
 	'Video Analysis': (),
 }
 
@@ -33,7 +34,7 @@ if os.path.isdir('OpenCV'):
 	eye_cascade = cv2.CascadeClassifier('OpenCV/haarcascade_eye.xml')
 	smile_cascade = cv2.CascadeClassifier('OpenCV/haarcascade_smile.xml')
 
-#----------------------------------------------------------------------------------------------------------------------#
+#--------------------------------------------------------------------------------------------------------------------------#
 
 def Excel_Downloader(df: pandas.DataFrame) -> str:
 	output = BytesIO()
@@ -98,7 +99,7 @@ def Pencil_Sketch(input_image):
 	return final_image	
 
 
-#----------------------------------------------------------------------------------------------------------------------#
+#--------------------------------------------------------------------------------------------------------------------------#
 
 def Execute_Main() -> None:
 
@@ -124,8 +125,8 @@ def Execute_Main() -> None:
 
 	if CATEGORY == 'Catalog':
 		st.write('** Catalog ** Page Shows the List of Micro Apps Based on Category & Sub-Category in this Web Application.')
-		st.table( data = [{'CATEGORY': key, 'SUB_CATEGORY': data} for key, value in CATEGORIES.items() \
-			if value is not None for data in value] )
+		st.table( data = [ {'CATEGORY': key, 'SUB_CATEGORY': data} for key, value in CATEGORIES.items() \
+			if value is not None for data in value ] )
 
 	elif CATEGORY == 'Image Analysis':
 		SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
@@ -217,17 +218,41 @@ def Execute_Main() -> None:
 			except Exception as ex:
 				st.write(f'** Error : ** { ex } ')
 
+		elif SUB_CATEGORY == 'QR Code':
+			try:
+				st.write('** QR Code Generator and Decoder **')
+				col_1, col_2 = st.columns((2, 2))
+				type: tuple = col_1.selectbox(label = 'Generator / Decoder', options = ('Generator', 'Decoder') )
+				if type == 'Generator':
+					input_text: str = col_2.text_area(label = 'Enter Your Text', height = 4)
+					if input_text is not None:
+						output = BytesIO()
+						img = qrcode.make( data = input_text )
+						img.save( output )
+						st.image( image = output.getvalue(), width = 300, use_column_width = False )
+				elif type == 'Decoder':
+					image_file = col_2.file_uploader(label = 'Chooose Bar / QR Code Image', accept_multiple_files = False, 
+						type = ['JPG', 'JPEG', 'PNG', 'GIF', 'BMP', 'TIFF'] )
+					if image_file is not None:
+						input_image = Image.open( fp = image_file, mode = 'r' )
+						st.image(image = input_image, caption = 'Original Image', width = 100, use_column_width = True)
+						st.text('Extracted Text Data from Image..')
+						for barcode in pyzbar.decode( input_image ):
+							st.success( barcode.data.decode('utf-8').strip() )
+			except Exception as ex:
+				st.write(f'** Error : ** { ex } ')
+
 
 	elif CATEGORY == 'Video Analysis':
 		SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
 		st.write('** Coming Soon! **')
 
 
-#----------------------------------------------------------------------------------------------------------------------#
+#--------------------------------------------------------------------------------------------------------------------------#
 
 ## Run the Main Code!
 
 if __name__ == '__main__':
 	Execute_Main()
 
-#----------------------------------------------------------------------------------------------------------------------#
+#--------------------------------------------------------------------------------------------------------------------------#

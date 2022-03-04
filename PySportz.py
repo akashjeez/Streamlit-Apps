@@ -33,11 +33,12 @@ CATEGORIES: dict = {
 		'NBA Player Profile', 'NBA Players', 'NBA ScoreBoard 1', 'NBA ScoreBoard 2', 'NBA Team Yearly Stats', 'NBA Teams', ),
 	'NFL League': ('About NFL', 'NFL Player Stats', 'NFL Players', 'NFL Standings', 'NFL Team Stats', 'NFL Teams', ),
 	'Cricket Stats': ('Cricket Stats', ),
-	'Cricket IPL Stats': ('Best Batting Average', 'Best Bowling Average', 'Best Bowling Average Strike Rate', 
-		'Best Bowling Average Strike Rate in Innings', 'Best Bowling Economy', 'Best Bowling in Innings', 'Best Strike Rate', 
-		'Best Strike Rate in Innings', 'Fastest Centuries', 'Fastest Fifties', 'Highest Scores', 'IPL Winners', 'Most 4 Wickets', 
-		'Most Centuries', 'Most Dot Balls', 'Most Fifties', 'Most Fours', 'Most Maiden Overs', 'Most Runs', 'Most Runs Conceded', 
-		'Most Sixes', 'Most Sixes in Innings', 'Most Wickets', 'Points Table', ),
+	'Cricket IPL Stats': ('About IPL', 'Most Runs', 'Most Runs in Over', 'Most Fours', 'Most Fours (Innings)', 'Most Sixes', 
+		'Most Sixes (Innings)', 'Most Fifties', 'Most Centuries', 'Fastest Fifties', 'Fastest Centuries', 'Highest Scores', 
+		'Highest Scores (Innings)', 'Best Batting Average', 'Best Batting Strike Rate', 'Biggest Sixes', 'Most Wickets', 
+		'Most Maidens', 'Most Dot Balls', 'Most Dot Balls (Innings)','Best Bowling Average', 'Best Bowling Economy', 
+		'Best Bowling Economy (Innings)', 'Best Bowling Strike Rate', 'Best Bowling Strike Rate (Innings)', 'Best Bowling Innings', 
+		'Most Hat Tricks', 'Most Four Wickets', 'Most Runs Conceded (Innings)', 'Fastest Balls', 'Most Valuable Player', 'IPL Winners'),
 	'Cricket ICC Rankings': ('ODI Player All-Rounder Stats', 'ODI Player Batting Stats', 'ODI Player Bowling Stats', 'ODI Team Stats', 
 		'T20I Player All-Rounder Stats', 'T20I Player Batting Stats', 'T20I Player Bowling Stats', 'T20I Team Stats', 
 		'Test Player All-Rounder Stats', 'Test Player Batting Stats', 'Test Player Bowling Stats', 'Test Team Stats', ),
@@ -144,7 +145,7 @@ NFL_TEAMS: list = [
 IPL_TEAMS: list = [
 	{'Team_name': 'Chennai Super Kings', 'City': 'Chennai, Tamil Nadu', 'Home_Ground': 'M. A. Chidambaram Stadium'},
 	{'Team_name': 'Delhi Capitals', 'City': 'Delhi, NCR', 'Home_Ground': 'Arun Jaitley Stadium'},
-	{'Team_name': 'Kings XI Punjab', 'City': 'Mohali, Punjab', 'Home_Ground': 'PCA Stadium'},
+	{'Team_name': 'Punjab Kings', 'City': 'Mohali, Punjab', 'Home_Ground': 'PCA Stadium'},
 	{'Team_name': 'Kolkata Knight Riders', 'City': 'Kolkata, West Bengal', 'Home_Ground': 'Eden Gardens'},
 	{'Team_name': 'Mumbai Indians', 'City': 'Mumbai, Maharashtra', 'Home_Ground': 'Wankhede Stadium'},
 	{'Team_name': 'Rajastan Royals', 'City': 'Jaipur, Rajasthan', 'Home_Ground': 'Sawai Mansingh Stadium'},
@@ -1624,7 +1625,7 @@ def Execute_Main() -> None:
 			options: list = ['all-time'] + [data for data in range(2008, datetime.now().year + 1)]
 			IPL_Category: str = col_3.selectbox(label = 'Select IPL Year / All-Time ?', options = options)
 			BASE_URL: str = f'{IPL_BASE_URL}/{IPL_Category}'
-				
+
 			if SUB_CATEGORY == 'About IPL':
 				try:
 					st.subheader('** About IPL **')
@@ -1642,8 +1643,7 @@ def Execute_Main() -> None:
 			elif SUB_CATEGORY == 'IPL Winners':
 				try:
 					st.subheader('** IPL Winners **')
-					dataset = pandas.read_html( requests.get('https://sportskeeda.com/cricket/ipl-winners-list', 
-						headers = { 'User-Agent': UserAgent().random }).text )[0]
+					dataset = pandas.read_html('https://sportskeeda.com/cricket/ipl-winners-list' )[0]
 					new_header = dataset.iloc[0] 
 					dataset = dataset[1 : ] 
 					dataset.columns = new_header
@@ -1652,98 +1652,123 @@ def Execute_Main() -> None:
 
 			elif SUB_CATEGORY == 'Most Runs':	
 				st.subheader('** Most Runs **')
-				dataset = pandas.read_html(f'{BASE_URL}/most-runs')[0]
+				dataset = pandas.read_html(f'{BASE_URL}/mostRuns?stats_type=batting')[0]
 
-			elif SUB_CATEGORY == 'Most Sixes':
-				st.subheader('** Most Sixes **')	
-				dataset = pandas.read_html(f'{BASE_URL}/most-sixes')[0]
+			elif SUB_CATEGORY == 'Most Runs in Over':	
+				st.subheader('** Most Runs in Over **')
+				dataset = pandas.read_html(f'{BASE_URL}/mostRunsOver?stats_type=batting')[0]
 
-			elif SUB_CATEGORY == 'Most Sixes in Innings':
-				st.subheader('** Most Sixes in Innings **')	
-				dataset = pandas.read_html(f'{BASE_URL}/most-sixes-innings')[0]
-
-			elif SUB_CATEGORY == 'Highest Scores':
-				st.subheader('** Highest Scores **')	
-				dataset = pandas.read_html(f'{BASE_URL}/highest-scores')[0]
-
-			elif SUB_CATEGORY == 'Best Strike Rate':
-				st.subheader('** Best Strike Rate **')	
-				dataset = pandas.read_html(f'{BASE_URL}/best-batting-strike-rate')[0]
-
-			elif SUB_CATEGORY == 'Best Strike Rate in Innings':
-				st.subheader('** Best Strike Rate in Innings **')	
-				dataset = pandas.read_html(f'{BASE_URL}/best-batting-strike-rate-innings')[0]
-
-			elif SUB_CATEGORY == 'Best Batting Average':
-				st.subheader('** Best Batting Average **')	
-				dataset = pandas.read_html(f'{BASE_URL}/best-batting-average')[0]
-
-			elif SUB_CATEGORY == 'Most Fifties':
-				st.subheader('** Most Fifties **')	
-				dataset = pandas.read_html(f'{BASE_URL}/most-fifties')[0]
-
-			elif SUB_CATEGORY == 'Most Centuries':
-				st.subheader('** Most Centuries **')	
-				dataset = pandas.read_html(f'{BASE_URL}/most-centuries')[0]
-
-			elif SUB_CATEGORY == 'Most Fours':
-				st.subheader('** Most Fours **')	
-				dataset = pandas.read_html(f'{BASE_URL}/most-fours')[0]
-
-			elif SUB_CATEGORY == 'Fastest Fifties':
-				st.subheader('** Fastest Fifties **')	
-				dataset = pandas.read_html(f'{BASE_URL}/fastest-fifties')[0]
-
-			elif SUB_CATEGORY == 'Fastest Centuries':
-				st.subheader('** Fastest Centuries **')	
-				dataset = pandas.read_html(f'{BASE_URL}/fastest-centuries')[0]
-
-			elif SUB_CATEGORY == 'Most Wickets':
-				st.subheader('** Most Wickets **')	
-				dataset = pandas.read_html(f'{BASE_URL}/most-wickets')[0]
-
-			elif SUB_CATEGORY == 'Best Bowling in Innings':
-				st.subheader('** Best Bowling in Innings **')	
-				dataset = pandas.read_html(f'{BASE_URL}/best-bowling-innings')[0]
-
-			elif SUB_CATEGORY == 'Best Bowling Average':
-				st.subheader('** Best Bowling Average **')	
-				dataset = pandas.read_html(f'{BASE_URL}/best-bowling-average')[0]
-
-			elif SUB_CATEGORY == 'Best Bowling Economy':
-				st.subheader('** Best Bowling Economy **')	
-				dataset = pandas.read_html(f'{BASE_URL}/best-bowling-economy')[0]
-
-			elif SUB_CATEGORY == 'Best Bowling Average Strike Rate in Innings':
-				st.subheader('** Best Bowling Average Strike Rate in Innings **')	
-				dataset = pandas.read_html(f'{BASE_URL}/best-bowling-strike-rate-innings')[0]
-
-			elif SUB_CATEGORY == 'Best Bowling Average Strike Rate':
-				st.subheader('** Best Bowling Average Strike Rate **')	
-				dataset = pandas.read_html(f'{BASE_URL}/best-bowling-strike-rate')[0]
-
-			elif SUB_CATEGORY == 'Most Runs Conceded':
-				st.subheader('** Most Runs Conceded **')	
-				dataset = pandas.read_html(f'{BASE_URL}/most-runs-conceded-innings')[0]
-
-			elif SUB_CATEGORY == 'Most Dot Balls':
-				st.subheader('** Most Dot Balls **')	
-				dataset = pandas.read_html(f'{BASE_URL}/most-dot-balls')[0]
-
-			elif SUB_CATEGORY == 'Most Maiden Overs':
-				st.subheader('** Most Maiden Overs **')	
-				dataset = pandas.read_html(f'{BASE_URL}/most-maidens')[0]
-
-			elif SUB_CATEGORY == 'Most 4 Wickets':
-				st.subheader('** Most 4 Wickets **')	
-				dataset = pandas.read_html(f'{BASE_URL}/most-four-wickets')[0]
-
-			elif SUB_CATEGORY == 'Points Table':
-				st.subheader('** Points Table **')
-				if IPL_Category == 'all-time':	st.write('** No Point Table for All Time Stats in IPL! **')
-				dataset = pandas.read_html(f'https://iplt20.com/points-table/{IPL_Category}')[0]
-				dataset.rename(columns = {'Unnamed: 0': 'Rank', 'Pld': 'Matches', 'Pts': 'Points'}, inplace = True)
-				dataset = dataset[['Rank', 'Team', 'Matches', 'Won', 'Lost', 'Tied', 'N/R', 'Net RR', 'Points']]
+			elif SUB_CATEGORY == 'Most Fours':	
+				st.subheader('** Most Fours **')
+				dataset = pandas.read_html(f'{BASE_URL}/most4s?stats_type=batting')[0]
+			
+			elif SUB_CATEGORY == 'Most Fours (Innings)':	
+				st.subheader('** Most Fours (Innings) **')
+				dataset = pandas.read_html(f'{BASE_URL}/mostFoursInn?stats_type=batting')[0]
+			
+			elif SUB_CATEGORY == 'Most Sixes':	
+				st.subheader('** Most Sixes **')
+				dataset = pandas.read_html(f'{BASE_URL}/most6s?stats_type=batting')[0]
+			
+			elif SUB_CATEGORY == 'Most Sixes (Innings)':	
+				st.subheader('** Most Sixes (Innings) **')
+				dataset = pandas.read_html(f'{BASE_URL}/most6sInn?stats_type=batting')[0]
+			
+			elif SUB_CATEGORY == 'Most Fifties':	
+				st.subheader('** Most Fifties **')
+				dataset = pandas.read_html(f'{BASE_URL}/most50s?stats_type=batting')[0]
+			
+			elif SUB_CATEGORY == 'Most Centuries':	
+				st.subheader('** Most Centuries **')
+				dataset = pandas.read_html(f'{BASE_URL}/most100s?stats_type=batting')[0]
+			
+			elif SUB_CATEGORY == 'Fastest Fifties':	
+				st.subheader('** Fastest Fifties **')
+				dataset = pandas.read_html(f'{BASE_URL}/fastestFifties?stats_type=batting')[0]
+			
+			elif SUB_CATEGORY == 'Fastest Centuries':	
+				st.subheader('** Fastest Centuries **')
+				dataset = pandas.read_html(f'{BASE_URL}/fastestCenturies?stats_type=batting')[0]
+			
+			elif SUB_CATEGORY == 'Highest Scores':	
+				st.subheader('** Highest Scores **')
+				dataset = pandas.read_html(f'{BASE_URL}/highestScores?stats_type=batting')[0]
+			
+			elif SUB_CATEGORY == 'Highest Scores (Innings)':	
+				st.subheader('** Highest Scores (Innings) **')
+				dataset = pandas.read_html(f'{BASE_URL}/highestInnScore?stats_type=batting')[0]
+			
+			elif SUB_CATEGORY == 'Best Batting Average':	
+				st.subheader('** Best Batting Average **')
+				dataset = pandas.read_html(f'{BASE_URL}/bestbattingaverage?stats_type=batting')[0]
+			
+			elif SUB_CATEGORY == 'Best Batting Strike Rate':	
+				st.subheader('** Best Batting Strike Rate **')
+				dataset = pandas.read_html(f'{BASE_URL}/bestStrikeRate?stats_type=batting')[0]
+			
+			elif SUB_CATEGORY == 'Biggest Sixes':	
+				st.subheader('** Biggest Sixes **')
+				dataset = pandas.read_html(f'{BASE_URL}/biggest6s?stats_type=batting')[0]
+			
+			elif SUB_CATEGORY == 'Most Wickets':	
+				st.subheader('** Most Wickets **')
+				dataset = pandas.read_html(f'{BASE_URL}/mostWkts?stats_type=bowling')[0]
+			
+			elif SUB_CATEGORY == 'Most Maidens':	
+				st.subheader('** Most Maidens **')
+				dataset = pandas.read_html(f'{BASE_URL}/mostMaidens?stats_type=bowling')[0]
+			
+			elif SUB_CATEGORY == 'Most Dot Balls':	
+				st.subheader('** Most Dot Balls **')
+				dataset = pandas.read_html(f'{BASE_URL}/mostDotBalls?stats_type=bowling')[0]
+			
+			elif SUB_CATEGORY == 'Most Dot Balls (Innings)':	
+				st.subheader('** Most Dot Balls (Innings) **')
+				dataset = pandas.read_html(f'{BASE_URL}/mostDotBallsInn?stats_type=bowling')[0]
+			
+			elif SUB_CATEGORY == 'Best Bowling Average':	
+				st.subheader('** Best Bowling Average **')
+				dataset = pandas.read_html(f'{BASE_URL}/bestBowlAvg?stats_type=bowling')[0]
+			
+			elif SUB_CATEGORY == 'Best Bowling Economy':	
+				st.subheader('** Best Bowling Economy **')
+				dataset = pandas.read_html(f'{BASE_URL}/bestBowlEco?stats_type=bowling')[0]
+			
+			elif SUB_CATEGORY == 'Best Bowling Economy (Innings)':	
+				st.subheader('** Best Bowling Economy (Innings) **')
+				dataset = pandas.read_html(f'{BASE_URL}/bestBowlEcoInn?stats_type=bowling')[0]
+			
+			elif SUB_CATEGORY == 'Best Bowling Strike Rate':	
+				st.subheader('** Best Bowling Strike Rate **')
+				dataset = pandas.read_html(f'{BASE_URL}/bestBowlingStrikeRate?stats_type=bowling')[0]
+			
+			elif SUB_CATEGORY == 'Best Bowling Strike Rate (Innings)':	
+				st.subheader('** Best Bowling Strike Rate (Innings) **')
+				dataset = pandas.read_html(f'{BASE_URL}/bestBowlingStrikeRateInn?stats_type=bowling')[0]
+			
+			elif SUB_CATEGORY == 'Best Bowling Innings':	
+				st.subheader('** Best Bowling Innings **')
+				dataset = pandas.read_html(f'{BASE_URL}/bestBowlInn?stats_type=bowling')[0]
+			
+			elif SUB_CATEGORY == 'Most Hat Tricks':	
+				st.subheader('** Most Hat Tricks **')
+				dataset = pandas.read_html(f'{BASE_URL}/mostHattricks?stats_type=bowling')[0]
+			
+			elif SUB_CATEGORY == 'Most Four Wickets':	
+				st.subheader('** Most Four Wickets **')
+				dataset = pandas.read_html(f'{BASE_URL}/mostFourWickets?stats_type=bowling')[0]
+			
+			elif SUB_CATEGORY == 'Most Runs Conceded (Innings)':	
+				st.subheader('** Most Runs Conceded (Innings) **')
+				dataset = pandas.read_html(f'{BASE_URL}/mostRunsConcededInn?stats_type=bowling')[0]
+			
+			elif SUB_CATEGORY == 'Fastest Balls':	
+				st.subheader('** Fastest Balls **')
+				dataset = pandas.read_html(f'{BASE_URL}/fastestballs?stats_type=bowling')[0]
+			
+			elif SUB_CATEGORY == 'Most Valuable Player':	
+				st.subheader('** Most Valuable Player **')
+				dataset = pandas.read_html(f'{BASE_URL}/playerPoints?stats_type=bowling')[0]
 			
 			st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
 			st.dataframe( data = dataset )
@@ -1751,6 +1776,7 @@ def Execute_Main() -> None:
 				st.error(f'** Error : ** { ex } ')
 
 
+	
 	elif CATEGORY == 'Cricket ICC Rankings':
 		try:
 			SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
