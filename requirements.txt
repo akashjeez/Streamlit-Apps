@@ -1,5 +1,6 @@
 bs4
 fake_useragent
+libzbar-cffi
 numpy
 opencv-python-headless
 pandas
