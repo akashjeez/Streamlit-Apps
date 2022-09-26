@@ -2,7 +2,6 @@ __author__ = 'akashjeez'
 
 import os, sys, re, base64
 import pandas, numpy, cv2, qrcode
-from pyzbar import pyzbar
 import streamlit as st
 from datetime import datetime, timedelta
 from PIL import Image, ImageColor, ImageDraw, ImageEnhance
@@ -237,6 +236,7 @@ def Execute_Main() -> None:
 						input_image = Image.open( fp = image_file, mode = 'r' )
 						st.image(image = input_image, caption = 'Original Image', width = 100, use_column_width = True)
 						st.text('Extracted Text Data from Image..')
+						from pyzbar import pyzbar
 						for barcode in pyzbar.decode( input_image ):
 							st.success( barcode.data.decode('utf-8').strip() )
 			except Exception as ex:
