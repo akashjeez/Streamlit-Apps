@@ -11,3 +11,4 @@ requests
 streamlit
 xlrd
 xlsxwriter
+zbar
