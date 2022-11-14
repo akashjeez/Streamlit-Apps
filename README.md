@@ -24,8 +24,3 @@ Python Streamlit Data Apps
 -> Video Analysis 
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://akashjeez-pyopencv.streamlit.app)
-
-### App 3 | AkashJeez
-
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://akashjeez.streamlit.app)
-
