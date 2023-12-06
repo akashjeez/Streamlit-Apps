@@ -2,7 +2,7 @@ __author__ = 'akashjeez'
 
 import os, sys, re, csv, base64
 import pandas, numpy, cv2, qrcode
-from pyzbar import pyzbar
+#from pyzbar import pyzbar
 import streamlit as st
 from datetime import datetime, timedelta
 from PIL import Image, ImageColor, ImageDraw, ImageEnhance
@@ -232,14 +232,15 @@ def Execute_Main() -> None:
 						img.save( output )
 						st.image( image = output.getvalue(), width = 300, use_column_width = False )
 				elif type == 'Decoder':
-					image_file = col_2.file_uploader(label = 'Chooose Bar / QR Code Image', accept_multiple_files = False, 
-						type = ['JPG', 'JPEG', 'PNG', 'GIF', 'BMP', 'TIFF'] )
-					if image_file is not None:
-						input_image = Image.open( fp = image_file, mode = 'r' )
-						st.image(image = input_image, caption = 'Original Image', width = 100, use_column_width = True)
-						st.text('Extracted Text Data from Image..')
-						for barcode in pyzbar.decode( input_image ):
-							st.success( barcode.data.decode('utf-8').strip() )
+					st.warning(body = 'Coming Soon..')
+					# image_file = col_2.file_uploader(label = 'Chooose Bar / QR Code Image', accept_multiple_files = False, 
+					# 	type = ['JPG', 'JPEG', 'PNG', 'GIF', 'BMP', 'TIFF'] )
+					# if image_file is not None:
+					# 	input_image = Image.open( fp = image_file, mode = 'r' )
+					# 	st.image(image = input_image, caption = 'Original Image', width = 100, use_column_width = True)
+					# 	st.text('Extracted Text Data from Image..')
+					# 	for barcode in pyzbar.decode( input_image ):
+					# 		st.success( barcode.data.decode('utf-8').strip() )
 			except Exception as ex:
 				st.write(f'**Error :** { ex } ')
 
