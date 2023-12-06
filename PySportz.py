@@ -1500,10 +1500,11 @@ def Execute_Main() -> None:
 					'FT_PCTLeaders': 'Free Throws %', 'DREBLeaders': 'Defensive Rebounds' }
 				limit: int = col_3.slider(label = 'How Many Players ?', min_value = 0, max_value = 1000, value = 5, step = 5)
 				for _, dataset in enumerate( iterable = List_NBA_Alltime_Leaders( limit = limit )['resultSets'] ):
-					st.write(f"**{ headings[ dataset['name'] ] } Leaders**")
-					data_frame = pandas.DataFrame( data = dataset['rowSet'], columns = dataset['headers'] )
-					st.markdown( body = Data_Downloader( df = data_frame ), unsafe_allow_html = True)
-					st.dataframe( data = data_frame )
+					with st.expander(label = f"**{ headings[ dataset['name'] ] } Leaders**", expanded = False):
+						st.write(f"**{ headings[ dataset['name'] ] } Leaders**")
+						data_frame = pandas.DataFrame( data = dataset['rowSet'], columns = dataset['headers'] )
+						st.markdown( body = Data_Downloader( df = data_frame ), unsafe_allow_html = True)
+						st.dataframe( data = data_frame )
 			except Exception as ex:
 				st.error(f'**Error :** { ex } ')
 
