@@ -5,10 +5,11 @@ opencv-python-headless
 pandas
 pillow
 pytube
-pyzbar
+zbar
 qrcode
 requests
 streamlit
 youtube-dl
 xlrd
 xlsxwriter
+zbar
