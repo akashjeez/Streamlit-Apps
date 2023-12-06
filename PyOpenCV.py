@@ -1,11 +1,12 @@
 __author__ = 'akashjeez'
 
-import os, sys, re, base64
+import os, sys, re, csv, base64
 import pandas, numpy, cv2, qrcode
+from pyzbar import pyzbar
 import streamlit as st
 from datetime import datetime, timedelta
 from PIL import Image, ImageColor, ImageDraw, ImageEnhance
-from io import BytesIO, TextIOWrapper
+from io import BytesIO, StringIO, TextIOWrapper
 
 #--------------------------------------------------------------------------------------------------------------------------#
 
@@ -35,17 +36,25 @@ if os.path.isdir('OpenCV'):
 
 #--------------------------------------------------------------------------------------------------------------------------#
 
-def Excel_Downloader(df: pandas.DataFrame) -> str:
-	output = BytesIO()
-	writer = pandas.ExcelWriter(path = output, engine = 'xlsxwriter')
-	df.to_excel(excel_writer = writer, sheet_name = 'Data')
-	writer.save()
-	processed_data = output.getvalue()
-	b64 = base64.b64encode(processed_data)
-	return f"<a href = 'data:application/octet-stream;base64,{b64.decode()}' download = 'Data.xlsx'> Download Excel </a>"
+def Data_Downloader(df: pandas.DataFrame) -> str:
+    ## Excel Worksheet Limitation = 1,048,576 Rows X 16,384 Columns
+    if 0 < len( df ) < 1048576 and 0 < len( df.columns ) < 16384:
+        output = BytesIO()
+        writer = pandas.ExcelWriter(path = output, engine = 'xlsxwriter')
+        df.to_excel(excel_writer = writer, sheet_name = 'Data', index = False )
+        writer.close()
+        processed_data: bytes = output.getvalue()
+        b64: bytes = base64.b64encode( processed_data )
+        return f"<a href = 'data:application/octet-stream;base64,{b64.decode()}' download = 'Data.xlsx'> Download Excel </a>"
+    else:
+        output = StringIO()
+        csv.writer( output ).writerows( [list(df.columns)] + df.values.tolist() )
+        processed_data: bytes = output.getvalue().encode()
+        b64: bytes = base64.b64encode( processed_data )
+        return f"<a href = 'data:application/octet-stream;base64,{b64.decode()}' download = 'Data.csv'> Download CSV </a>"
 
 
-@st.cache
+@st.cache_data
 def Detect_Faces(input_image):
 	input_image = numpy.array( object = input_image.convert('RGB') )
 	new_image = cv2.cvtColor( src = input_image, code = cv2.COLOR_BGR2BGRA )
@@ -59,7 +68,7 @@ def Detect_Faces(input_image):
 	return new_image, faces
 
 
-@st.cache
+@st.cache_data
 def Detect_Eyes(input_image):
 	input_image = numpy.array( object = input_image.convert('RGB') )
 	new_image = cv2.cvtColor( src = input_image, code = cv2.COLOR_BGR2BGRA )
@@ -73,7 +82,7 @@ def Detect_Eyes(input_image):
 	return new_image, eyes
 
 
-@st.cache
+@st.cache_data
 def Detect_Smiles(input_image):
 	input_image = numpy.array( object = input_image.convert('RGB') )
 	new_image = cv2.cvtColor( src = input_image, code = cv2.COLOR_BGR2BGRA )
@@ -87,7 +96,7 @@ def Detect_Smiles(input_image):
 	return new_image, smiles
 
 
-@st.cache
+@st.cache_data
 def Pencil_Sketch(input_image):
 	input_image = numpy.array( object = input_image.convert('RGB') )
 	gray_image = cv2.cvtColor( src = input_image, code = cv2.COLOR_BGR2GRAY )
@@ -107,15 +116,8 @@ def Execute_Main() -> None:
 			st.info(body = '''
 				Developed by AkashJeez :) \n
 				Feel Free to Reach Out to Me Via \n
-				[ << Website >>  ] ( https://akashjeez.herokuapp.com/ ) \n
-				[ << Blogspot >>  ] ( https://akashjeez.blogspot.com/ ) \n
-				[ << Instagram >> ] ( https://instagram.com/akashjeez/ ) \n
-				[ << Twitter >>   ] ( https://twitter.com/akashjeez/ ) \n
-				[ << GitHub >>    ] ( https://github.com/akashjeez/ ) \n
-				[ << Dev.to >>    ] ( https://dev.to/akashjeez/ ) \n
-				[ << Medium >>    ] ( https://akashjeez.medium.com/ ) \n
-				[ << Wordpress >> ] ( https://akashjeez.wordpress.com/ ) \n
-				[ << LinkedIn >>  ] ( https://linkedin.com/in/akash-ponnurangam-408363125/ ) \n
+				[<< LinkTree >>](https://linktr.ee/akashjeez) \n
+				[<< GitHub >>](https://github.com/akashjeez/) \n
 			''')
 
 	col_1, col_2 = st.columns((2, 2))
@@ -123,7 +125,7 @@ def Execute_Main() -> None:
 	st.write('*' * 50)
 
 	if CATEGORY == 'Catalog':
-		st.write('** Catalog ** Page Shows the List of Micro Apps Based on Category & Sub-Category in this Web Application.')
+		st.write('**Catalog** Page Shows the List of Micro Apps Based on Category & Sub-Category in this Web Application.')
 		st.table( data = [ {'CATEGORY': key, 'SUB_CATEGORY': data} for key, value in CATEGORIES.items() \
 			if value is not None for data in value ] )
 
@@ -132,7 +134,7 @@ def Execute_Main() -> None:
 
 		if SUB_CATEGORY == 'Read Image':
 			try:
-				st.write('** OpenCV Read Image **')
+				st.write('**OpenCV Read Image**')
 				image_file = st.file_uploader(label = 'Choose an Image', accept_multiple_files = False, 
 					type = ['JPG', 'JPEG', 'PNG', 'GIF', 'BMP', 'TIFF'] )
 				if image_file is not None:
@@ -142,11 +144,11 @@ def Execute_Main() -> None:
 					st.image(image = our_image, caption = 'Original Image from PIL', use_column_width = True)
 					st.image(image = new_image, caption = 'Original Image from OpenCV', use_column_width = True)
 			except Exception as ex:
-				st.write(f'** Error : ** { ex } ')
+				st.write(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'Face Detection':
 			try:
-				st.write('** OpenCV Face Detection **')
+				st.write('**OpenCV Face Detection**')
 				image_file = st.file_uploader(label = 'Choose an Image', accept_multiple_files = False, 
 					type = ['JPG', 'JPEG', 'PNG', 'GIF', 'BMP', 'TIFF'] )
 				if image_file is not None:
@@ -156,11 +158,11 @@ def Execute_Main() -> None:
 					st.image(image = result_image, caption = 'Face Detection', use_column_width = True)
 					st.success(f'Found { len(result_faces) } Faces!')
 			except Exception as ex:
-				st.write(f'** Error : ** { ex } ')
+				st.write(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'Eye Detection':
 			try:
-				st.write('** OpenCV Eye Detection **')
+				st.write('**OpenCV Eye Detection**')
 				image_file = st.file_uploader(label = 'Choose an Image', accept_multiple_files = False, 
 					type = ['JPG', 'JPEG', 'PNG', 'GIF', 'BMP', 'TIFF'] )
 				if image_file is not None:
@@ -170,11 +172,11 @@ def Execute_Main() -> None:
 					st.image(image = result_image, caption = 'Eye Detection', use_column_width = True)
 					st.success(f'Found { len(result_eyes) } Eyes!')
 			except Exception as ex:
-				st.write(f'** Error : ** { ex } ')
+				st.write(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'Smile Detection':
 			try:
-				st.write('** OpenCV Smile Detection **')
+				st.write('**OpenCV Smile Detection**')
 				image_file = st.file_uploader(label = 'Choose an Image', accept_multiple_files = False, 
 					type = ['JPG', 'JPEG', 'PNG', 'GIF', 'BMP', 'TIFF'] )
 				if image_file is not None:
@@ -184,11 +186,11 @@ def Execute_Main() -> None:
 					st.image(image = result_image, caption = 'Smile Detection', use_column_width = True)
 					st.success(f'Found { len(result_smiles) } Smiles!')
 			except Exception as ex:
-				st.write(f'** Error : ** { ex } ')
+				st.write(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'Pencil Sketch':
 			try:
-				st.write('** OpenCV Pencil Sketch **')
+				st.write('**OpenCV Pencil Sketch**')
 				image_file = st.file_uploader(label = 'Choose an Image', accept_multiple_files = False, 
 					type = ['JPG', 'JPEG', 'PNG', 'GIF', 'BMP', 'TIFF'] )
 				if image_file is not None:
@@ -197,11 +199,11 @@ def Execute_Main() -> None:
 					st.image(image = input_image, caption = 'Original Image', use_column_width = True)
 					st.image(image = result_image, caption = 'Pencil Sketch', use_column_width = True)
 			except Exception as ex:
-				st.write(f'** Error : ** { ex } ')
+				st.write(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'Text to Image':
 			try:
-				st.write('** Text to Image Conversion **')
+				st.write('**Text to Image Conversion**')
 				col_1, col_2, col_3 = st.columns((3, 2, 2))
 				Input_Text: str = col_1.text_area(label = 'Enter Your Text', height = 4)
 				Input_BG_Color: str = col_2.selectbox(label = 'Choose Background Color', options = list(set(COLOR_MAPS.keys())) )
@@ -215,11 +217,11 @@ def Execute_Main() -> None:
 					st.text('Right Click on Image and Save It On Your PC / Laptop / Smartphone!')
 					st.image(image = output.getvalue(), use_column_width = False)
 			except Exception as ex:
-				st.write(f'** Error : ** { ex } ')
+				st.write(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'QR Code':
 			try:
-				st.write('** QR Code Generator and Decoder **')
+				st.write('**QR Code Generator and Decoder**')
 				col_1, col_2 = st.columns((2, 2))
 				type: tuple = col_1.selectbox(label = 'Generator / Decoder', options = ('Generator', 'Decoder') )
 				if type == 'Generator':
@@ -236,16 +238,15 @@ def Execute_Main() -> None:
 						input_image = Image.open( fp = image_file, mode = 'r' )
 						st.image(image = input_image, caption = 'Original Image', width = 100, use_column_width = True)
 						st.text('Extracted Text Data from Image..')
-						from pyzbar import pyzbar
 						for barcode in pyzbar.decode( input_image ):
 							st.success( barcode.data.decode('utf-8').strip() )
 			except Exception as ex:
-				st.write(f'** Error : ** { ex } ')
+				st.write(f'**Error :** { ex } ')
 
 
 	elif CATEGORY == 'Video Analysis':
 		SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
-		st.write('** Coming Soon! **')
+		st.write('**Coming Soon!**')
 
 
 #--------------------------------------------------------------------------------------------------------------------------#

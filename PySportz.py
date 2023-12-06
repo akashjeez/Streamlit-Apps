@@ -1,6 +1,6 @@
 __author__ = 'akashjeez'
 
-import os, io, string, base64, pandas, requests
+import os, io, csv, string, base64, pandas, requests
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup as soup
 import streamlit as st
@@ -62,7 +62,7 @@ CRICKET_STATS_BASE_URL: str = 'https://stats.espncricinfo.com/ci/engine/records/
 ## Static Headers for NBA League.
 NBA_STATIC_HEADERS: dict = {
 	'Host': 'stats.nba.com', 
-	'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0',
+	'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)',
 	'Accept': 'application/json, text/plain, */*', 
 	'Accept-Language': 'en-US,en;q=0.5', 
 	'Accept-Encoding': 'gzip, deflate, br', 
@@ -145,9 +145,11 @@ NFL_TEAMS: list = [
 IPL_TEAMS: list = [
 	{'Team_name': 'Chennai Super Kings', 'City': 'Chennai, Tamil Nadu', 'Home_Ground': 'M. A. Chidambaram Stadium'},
 	{'Team_name': 'Delhi Capitals', 'City': 'Delhi, NCR', 'Home_Ground': 'Arun Jaitley Stadium'},
-	{'Team_name': 'Punjab Kings', 'City': 'Mohali, Punjab', 'Home_Ground': 'PCA Stadium'},
+	{'Team_name': 'Gujarat Titans', 'City': 'Ahmedabad, Gujarat', 'Home_Ground': 'Narendra Modi Stadium'},
 	{'Team_name': 'Kolkata Knight Riders', 'City': 'Kolkata, West Bengal', 'Home_Ground': 'Eden Gardens'},
+	{'Team_name': 'Lucknow Super Giants', 'City': 'Lucknow', 'Home_Ground': 'Ekana Sports Stadium'},
 	{'Team_name': 'Mumbai Indians', 'City': 'Mumbai, Maharashtra', 'Home_Ground': 'Wankhede Stadium'},
+	{'Team_name': 'Punjab Kings', 'City': 'Mohali, Punjab', 'Home_Ground': 'PCA Stadium'},
 	{'Team_name': 'Rajastan Royals', 'City': 'Jaipur, Rajasthan', 'Home_Ground': 'Sawai Mansingh Stadium'},
 	{'Team_name': 'Royal Challengers Bangalore', 'City': 'Bengaluru, Karnataka', 'Home_Ground': 'M. Chinnaswamy Stadium'},
 	{'Team_name': 'Sunrisers Hyderabad', 'City': 'Hyderabad, Telangana', 'Home_Ground': 'Rajiv Gandhi International Cricket Stadium'},
@@ -155,17 +157,25 @@ IPL_TEAMS: list = [
 
 #---------------------------------------------------------------------------------------------------------------------------------#
 
-def Excel_Downloader(df: pandas.DataFrame) -> str:
-	output = io.BytesIO()
-	writer = pandas.ExcelWriter(path = output, engine = 'xlsxwriter')
-	df.to_excel(excel_writer = writer, sheet_name = 'Data', index = False)
-	writer.save()
-	processed_data = output.getvalue()
-	b64 = base64.b64encode(processed_data)
-	return f"<a href = 'data:application/octet-stream;base64,{b64.decode()}' download = 'Data.xlsx'> Download Excel </a>"
+def Data_Downloader(df: pandas.DataFrame) -> str:
+    ## Excel Worksheet Limitation = 1,048,576 Rows X 16,384 Columns
+    if 0 < len( df ) < 1048576 and 0 < len( df.columns ) < 16384:
+        output = io.BytesIO()
+        writer = pandas.ExcelWriter(path = output, engine = 'xlsxwriter')
+        df.to_excel(excel_writer = writer, sheet_name = 'Data', index = False )
+        writer.close()
+        processed_data: bytes = output.getvalue()
+        b64: bytes = base64.b64encode( processed_data )
+        return f"<a href = 'data:application/octet-stream;base64,{b64.decode()}' download = 'Data.xlsx'> Download Excel </a>"
+    else:
+        output = io.StringIO()
+        csv.writer( output ).writerows( [list(df.columns)] + df.values.tolist() )
+        processed_data: bytes = output.getvalue().encode()
+        b64: bytes = base64.b64encode( processed_data )
+        return f"<a href = 'data:application/octet-stream;base64,{b64.decode()}' download = 'Data.csv'> Download CSV </a>"
 
 
-@st.cache
+@st.cache_data
 def Cricket_Stats() -> pandas.DataFrame:
 	dataset, URLS = [], {
 		'MENS_TEST': CRICKET_STATS_BASE_URL.format('index.html?class=1'),
@@ -180,7 +190,7 @@ def Cricket_Stats() -> pandas.DataFrame:
 		'MENS_COMBINED_ALL': CRICKET_STATS_BASE_URL.format('index.html?class=11'),
 	}
 	for category_name, category_link in URLS.items():
-		page = soup(requests.get( category_link ).text, 'lxml')
+		page = soup(markup = requests.get( url = category_link ).text, features = 'lxml')
 		for data in page.find_all('a', class_ = 'RecordLinks'):
 			sub_category_name = data.text.strip().replace('(', '').replace(')', '').replace(' ', '_').upper()
 			sub_category_id = data.get('href').strip().split('/')[-1].split('.')[0]
@@ -193,7 +203,7 @@ def Cricket_Stats() -> pandas.DataFrame:
 	return pandas.DataFrame( data = dataset )
 
 
-@st.cache
+@st.cache_data
 def List_MLB_Teams() -> dict:
 	try:
 		dataset: list = []
@@ -251,7 +261,7 @@ def List_MLB_Teams() -> dict:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_MLB_Sports() -> dict:
 	try:
 		response: dict = requests.get(url = f'{MLB_BASE_URL}/api/v1/sports').json()
@@ -268,7 +278,7 @@ def List_MLB_Sports() -> dict:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_MLB_Players(sport_id: int) -> dict:
 	try:
 		dataset: list = []
@@ -327,7 +337,7 @@ def List_MLB_Players(sport_id: int) -> dict:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_MLB_Leagues() -> dict:
 	try:
 		dataset: list = []
@@ -370,7 +380,7 @@ def List_MLB_Leagues() -> dict:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_MLB_Divisions() -> dict:
 	try:
 		dataset: list = []
@@ -402,7 +412,7 @@ def List_MLB_Divisions() -> dict:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_MLB_Schedule(sport_id: int = None, start_date: str = None, end_date: str = None) -> dict:
 	try:
 		dataset: str = []
@@ -492,7 +502,7 @@ def List_MLB_Schedule(sport_id: int = None, start_date: str = None, end_date: st
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_MLB_Rosters(team_id: int) -> dict:
 	try:
 		dataset: list = []
@@ -516,7 +526,7 @@ def List_MLB_Rosters(team_id: int) -> dict:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_MLB_Personnel(team_id: int) -> dict:
 	try:
 		dataset: list = []
@@ -539,7 +549,7 @@ def List_MLB_Personnel(team_id: int) -> dict:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_MLB_Coaches(team_id: int) -> dict:
 	try:
 		dataset: list = []
@@ -562,7 +572,7 @@ def List_MLB_Coaches(team_id: int) -> dict:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_MLB_Attendances(team_id: int) -> dict:
 	try:
 		dataset: list = []
@@ -605,7 +615,7 @@ def List_MLB_Attendances(team_id: int) -> dict:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_MLB_Venues() -> dict:
 	try:
 		response: dict = requests.get(url = f'{MLB_BASE_URL}/api/v1/venues').json()
@@ -619,7 +629,7 @@ def List_MLB_Venues() -> dict:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_MLB_Alumnis(team_id: int) -> dict:
 	try:
 		dataset, season = [], datetime.now().year
@@ -673,7 +683,7 @@ def List_MLB_Alumnis(team_id: int) -> dict:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_MLB_League_Standings(league_id: str) -> dict:
 	try:
 		dataset: list = []
@@ -762,7 +772,7 @@ def List_MLB_League_Standings(league_id: str) -> dict:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_MLB_Drafts() -> dict:
 	try:
 		dataset, year = [], datetime.now().year
@@ -849,7 +859,7 @@ def List_MLB_Drafts() -> dict:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_MLB_Umpires() -> dict:
 	try:
 		dataset: list = []
@@ -872,7 +882,7 @@ def List_MLB_Umpires() -> dict:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_MLB_DataCasters() -> dict:
 	try:
 		dataset: list = []
@@ -894,7 +904,7 @@ def List_MLB_DataCasters() -> dict:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_NBA_Players(team_name: str) -> dict:
 	try:
 		NBA_BASE_URL, dataset = 'https://balldontlie.io/api', []
@@ -917,44 +927,44 @@ def List_NBA_Players(team_name: str) -> dict:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_NBA_Player_Profile(player_id: int) -> dict:
 	try:
 		payloads: dict = { 'PerMode': 'Totals', 'PlayerID': player_id }
 		request_url: str = f'{NBA_BASE_URL}/stats/playerprofilev2?' + \
 			'&'.join( [ f'{key}={value}' for key, value in payloads.items() ] )
-		response = requests.get(url = request_url, headers = NBA_STATIC_HEADERS, stream = True, timeout = 6000)
+		response = requests.get(url = request_url, headers = NBA_STATIC_HEADERS, stream = True, verify = False, timeout = 600)
 		return response.json()
 	except Exception as ex:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_NBA_League_Players() -> dict:
 	try:
 		season_year: str = f"{ ( datetime.now() - timedelta(days = 365)).year }-{ str( datetime.now().year )[2:] }"
 		payloads: dict = { 'IsOnlyCurrentSeason': 0, 'LeagueID': '00', 'Season': season_year }
 		request_url: str = f'{NBA_BASE_URL}/stats/commonallplayers?' + \
 			'&'.join( [ f'{key}={value}' for key, value in payloads.items() ] )
-		response = requests.get(url = request_url, headers = NBA_STATIC_HEADERS, stream = True, timeout = 6000)
+		response = requests.get(url = request_url, headers = NBA_STATIC_HEADERS, stream = True, verify = False, timeout = 600)
 		return response.json()
 	except Exception as ex:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_NBA_Live_Scoreboard(game_date: str) -> dict:
 	try:
 		payloads: dict = { 'DayOffset': 0, 'LeagueID': '00', 'GameDate': game_date }
 		request_url: str = f'{NBA_BASE_URL}/stats/scoreboard?' + \
 			'&'.join( [ f'{key}={value}' for key, value in payloads.items() ] )
-		response = requests.get(url = request_url, headers = NBA_STATIC_HEADERS, stream = True, timeout = 6000)
+		response = requests.get(url = request_url, headers = NBA_STATIC_HEADERS, stream = True, verify = False, timeout = 600)
 		return response.json()
 	except Exception as ex:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_NBA_League_Standings() -> dict:
 	try:
 		season_year: str = f"{ ( datetime.now() - timedelta(days = 365)).year }-{ str( datetime.now().year )[2:] }" \
@@ -962,47 +972,47 @@ def List_NBA_League_Standings() -> dict:
 		payloads: dict = { 'LeagueID': '00', 'Season': season_year, 'SeasonType' : 'Regular+Season' }
 		request_url: str = f'{NBA_BASE_URL}/stats/leaguestandings?' + \
 			'&'.join( [ f'{key}={value}' for key, value in payloads.items() ] )
-		response = requests.get(url = request_url, headers = NBA_STATIC_HEADERS, stream = True, timeout = 6000)
+		response = requests.get(url = request_url, headers = NBA_STATIC_HEADERS, stream = True, verify = False, timeout = 600)
 		return response.json()
 	except Exception as ex:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_NBA_Player_Awards(player_id: int) -> dict:
 	try:
 		request_url: str = f'{NBA_BASE_URL}/stats/playerawards?PlayerID={player_id}'
-		response = requests.get(url = request_url, headers = NBA_STATIC_HEADERS, stream = True, timeout = 6000)
+		response = requests.get(url = request_url, headers = NBA_STATIC_HEADERS, stream = True, verify = False, timeout = 600)
 		return response.json()
 	except Exception as ex:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_NBA_Alltime_Leaders(limit: int) -> dict:
 	try:
 		payloads: str = { 'LeagueID': '00', 'PerMode': 'Totals', 'SeasonType': 'Regular+Season', 'TopX': int(limit)}
 		request_url: str = f'{NBA_BASE_URL}/stats/alltimeleadersgrids?' + \
 			'&'.join( [ f'{key}={value}' for key, value in payloads.items() ] )
-		response = requests.get(rul = request_url, headers = NBA_STATIC_HEADERS, stream = True, timeout = 6000)
+		response = requests.get(url = request_url, headers = NBA_STATIC_HEADERS, stream = True, verify = False, timeout = 600)
 		return response.json()
 	except Exception as ex:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_NBA_Team_Yearly_Stats(team_id: int) -> dict:
 	try:
 		payloads: dict = { 'LeagueID': '00', 'PerMode': 'Totals', 'SeasonType': 'Regular+Season', 'TeamID': int(team_id)}
 		request_url: str = f'{NBA_BASE_URL}/stats/teamyearbyyearstats?' + \
 			'&'.join( [ f'{key}={value}' for key, value in payloads.items() ] )
-		response = requests.get(url = request_url, headers = NBA_STATIC_HEADERS, stream = True, timeout = 6000)
+		response = requests.get(url = request_url, headers = NBA_STATIC_HEADERS, stream = True, verify = False, timeout = 600)
 		return response.json()
 	except Exception as ex:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def NFL_Players_List() -> dict:
 	try:
 		dataset: list = []
@@ -1013,7 +1023,7 @@ def NFL_Players_List() -> dict:
 		return {'error': ex}
 
 
-@st.cache
+@st.cache_data
 def List_NBA_Live_Scoreboard_2(game_date: str) -> dict:
 	try:
 		dataset: list = []
@@ -1071,7 +1081,7 @@ def List_NBA_Live_Scoreboard_2(game_date: str) -> dict:
 		return { 'data' : { 'error' : ex } }
 
 
-@st.cache
+@st.cache_data
 def List_NBA_Coaches() -> dict:
 	try:
 		dataset, year = [], datetime.now().year
@@ -1099,29 +1109,22 @@ def List_NBA_Coaches() -> dict:
 #---------------------------------------------------------------------------------------------------------------------------------#
 
 def Execute_Main() -> None:
-	
+
 	with st.sidebar:
 		with st.expander(label = 'About Me', expanded = False):
 			st.info(body = '''
 				Developed by AkashJeez :) \n
 				Feel Free to Reach Out to Me Via \n
-				[ << Website >>  ] ( https://akashjeez.herokuapp.com/ ) \n
-				[ << Blogspot >>  ] ( https://akashjeez.blogspot.com/ ) \n
-				[ << Instagram >> ] ( https://instagram.com/akashjeez/ ) \n
-				[ << Twitter >>   ] ( https://twitter.com/akashjeez/ ) \n
-				[ << GitHub >>    ] ( https://github.com/akashjeez/ ) \n
-				[ << Dev.to >>    ] ( https://dev.to/akashjeez/ ) \n
-				[ << Medium >>    ] ( https://akashjeez.medium.com/ ) \n
-				[ << Wordpress >> ] ( https://akashjeez.wordpress.com/ ) \n
-				[ << LinkedIn >>  ] ( https://linkedin.com/in/akash-ponnurangam-408363125/ ) \n
+				[<< LinkTree >>](https://linktr.ee/akashjeez) \n
+				[<< GitHub >>](https://github.com/akashjeez/) \n
 			''')
-
+	
 	col_1, col_2, col_3 = st.columns((2, 2, 2))
 	CATEGORY: str = col_1.selectbox(label = 'Choose Category', options = list(CATEGORIES.keys()) )
 	st.write('*' * 50)
 
 	if CATEGORY == 'Catalog':
-		st.write('** Catalog ** Page Shows the List of Micro Apps Based on Category & Sub-Category in this Web Application.')
+		st.write('**Catalog** Page Shows the List of Micro Apps Based on Category & Sub-Category in this Web Application.')
 		st.table( data = [{'CATEGORY': key, 'SUB_CATEGORY': data} for key, value in CATEGORIES.items() \
 			if value is not None for data in value] )
 
@@ -1130,9 +1133,9 @@ def Execute_Main() -> None:
 
 		if SUB_CATEGORY == 'Cricket Stats':
 			try:
-				st.subheader('** Cricket Stats **')
+				st.subheader('**Cricket Stats**')
 				dataset = Cricket_Stats()
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				with st.expander(label = 'List of Cricket Stats Categories?', expanded = False):
 					st.dataframe( data = dataset )
 				category: str = col_2.selectbox(label = 'Choose Category', options = list(dataset.category.unique()) )
@@ -1141,17 +1144,17 @@ def Execute_Main() -> None:
 				dataset = dataset[ dataset.sub_category == sub_category ]
 				dataset = pandas.read_html( CRICKET_STATS_BASE_URL.format(f'{ list( dataset.sub_category_id )[0] }.html') )[0]
 				dataset.fillna('TBD', inplace = True)
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 
 	elif CATEGORY == 'MLB League':
 		SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
 
 		if SUB_CATEGORY == 'About MLB':
-			st.subheader('** About MLB **')
+			st.subheader('**About MLB**')
 			st.write(''' The Major League Baseball (MLB) is an American Professional Baseball Organization and The Oldest of the 
 				Major Professional Sports Leagues in the United States and Canada. A Total of 30 Teams Play in Major League Baseball: 
 				15 Teams in the National League (NL) and 15 in the American League (AL). The NL and AL were Formed as Separate Legal 
@@ -1165,198 +1168,198 @@ def Execute_Main() -> None:
 
 		elif SUB_CATEGORY == 'MLB Teams':
 			try:
-				st.subheader('** MLB Teams **')
+				st.subheader('**MLB Teams**')
 				dataset = pandas.DataFrame( data = List_MLB_Teams()['data'] )
 				dataset.fillna('TBD', inplace = True)
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Sports':
 			try:
-				st.subheader('** MLB Sports **')
+				st.subheader('**MLB Sports**')
 				dataset = pandas.DataFrame( data = List_MLB_Sports()['data'] )
 				dataset.fillna('TBD', inplace = True)
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Players':
 			try:
-				st.subheader('** MLB Players **')
+				st.subheader('**MLB Players**')
 				Sports: dict = { Sport['Sport_Name']: int(Sport['Sport_ID']) for Sport in List_MLB_Sports()['data'] }
 				Sport: str = col_3.selectbox(label = 'Select MLB Sport', options = list(Sports.keys()) )
-				st.write(f'** > Selected ** Sport Name = { Sport } | Sport ID = { Sports[Sport] } ')
+				st.write(f'**> Selected**Sport Name = { Sport } | Sport ID = { Sports[Sport] } ')
 				dataset = pandas.DataFrame( data = List_MLB_Players( sport_id = Sports[Sport] )['data'] )
 				dataset.fillna('TBD', inplace = True)
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Leagues':
 			try:
-				st.subheader('** MLB Leagues **')
+				st.subheader('**MLB Leagues**')
 				dataset = pandas.DataFrame( data = List_MLB_Leagues()['data'] )
 				dataset.fillna('TBD', inplace = True)
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Divisions':
 			try:
-				st.subheader('** MLB Divisions **')
+				st.subheader('**MLB Divisions**')
 				dataset = pandas.DataFrame( data = List_MLB_Divisions()['data'] )
 				dataset.fillna('TBD', inplace = True)
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Schedule':
 			try:
-				st.subheader('** MLB Schedule **')
+				st.subheader('**MLB Schedule**')
 				Sports: dict = { Sport['Sport_Name']: int(Sport['Sport_ID']) for Sport in List_MLB_Sports()['data'] }
 				Sport: str = col_3.selectbox(label = 'Select MLB Sport', options = list(Sports.keys()) )
 				Start_Date = col_1.date_input(label = 'Start Date', value = (datetime.now() - timedelta(days = 5)) )
 				End_Date = col_2.date_input(label = 'End Date', value = (datetime.now() + timedelta(days = 30)) )
-				st.write(f'** > Selected ** MLB Sport Name =  { Sport } | Sport ID = { Sports[Sport] } ')
-				st.write(f'** > Selected ** Start Date = { Start_Date } | End Date = { End_Date } ')
+				st.write(f'**> Selected**MLB Sport Name =  { Sport } | Sport ID = { Sports[Sport] } ')
+				st.write(f'**> Selected**Start Date = { Start_Date } | End Date = { End_Date } ')
 				dataset = pandas.DataFrame( data = List_MLB_Schedule( sport_id = Sports[Sport], 
 					start_date = Start_Date, end_date = End_Date )['data'] )
 				dataset.fillna('TBD', inplace = True)
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Team Rosters':
 			try:
-				st.subheader('** MLB Team Rosters **')
+				st.subheader('**MLB Team Rosters**')
 				Teams: dict = { Team['Team_Name']: int(Team['Team_ID']) for Team in List_MLB_Teams()['data'] }
 				Team: str = col_3.selectbox(label = 'Select MLB Team', options = list(Teams.keys()) )
-				st.write(f'** > Selected ** Team Name = { Team } | Team ID = { Teams[Team] } ')
+				st.write(f'**> Selected**Team Name = { Team } | Team ID = { Teams[Team] } ')
 				dataset = pandas.DataFrame( data = List_MLB_Rosters( team_id = Teams[Team] )['data'] )
 				dataset.fillna('TBD', inplace = True)
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Team Personnel':
 			try:
-				st.subheader('** MLB Team Personnel **')
+				st.subheader('**MLB Team Personnel**')
 				Teams: dict = { Team['Team_Name']: int(Team['Team_ID']) for Team in List_MLB_Teams()['data'] }
 				Team: str = col_3.selectbox(label = 'Select MLB Team', options = list(Teams.keys()) )
-				st.write(f'** > Selected ** Team Name = { Team } | Team ID = { Teams[Team] } ')
+				st.write(f'**> Selected**Team Name = { Team } | Team ID = { Teams[Team] } ')
 				dataset = pandas.DataFrame( data = List_MLB_Personnel( team_id = Teams[Team] )['data'] )
 				dataset.fillna('TBD', inplace = True)
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Team Coaches':
 			try:
-				st.subheader('** MLB Team Coaches **')
+				st.subheader('**MLB Team Coaches**')
 				Teams: dict = { Team['Team_Name']: int(Team['Team_ID']) for Team in List_MLB_Teams()['data'] }
 				Team: str = col_3.selectbox(label = 'Select MLB Team', options = list(Teams.keys()) )
-				st.write(f'** > Selected ** Team Name = { Team } | Team ID = { Teams[Team] } ')
+				st.write(f'**> Selected**Team Name = { Team } | Team ID = { Teams[Team] } ')
 				dataset = pandas.DataFrame( data = List_MLB_Coaches( team_id = Teams[Team] )['data'] )
 				dataset.fillna('TBD', inplace = True)
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Attendances':
 			try:
-				st.subheader('** MLB Attendances **')
+				st.subheader('**MLB Attendances**')
 				Teams: dict = { Team['Team_Name']: int(Team['Team_ID']) for Team in List_MLB_Teams()['data'] }
 				Team: str = col_3.selectbox(label = 'Select MLB Team', options = list(Teams.keys()) )
-				st.write(f'** > Selected ** Team Name = { Team } | Team ID = { Teams[Team] } ')
+				st.write(f'**> Selected**Team Name = { Team } | Team ID = { Teams[Team] } ')
 				dataset = pandas.DataFrame( data = List_MLB_Attendances( team_id = Teams[Team] )['data'] )
 				dataset.fillna('TBD', inplace = True)
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Venues':
 			try:
-				st.subheader('** MLB Venues **')
+				st.subheader('**MLB Venues**')
 				dataset = pandas.DataFrame( data = List_MLB_Venues()['data'] )
 				dataset.fillna('TBD', inplace = True)
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Alumnis':
 			try:
-				st.subheader('** MLB Alumnis **')
+				st.subheader('**MLB Alumnis**')
 				Teams: dict = { Team['Team_Name']: int(Team['Team_ID']) for Team in List_MLB_Teams()['data'] }
 				Team: str = col_3.selectbox(label = 'Select MLB Team', options = list(Teams.keys()) )
-				st.write(f'** > Selected ** Team Name = { Team } | Team ID = { Teams[Team] } ')
+				st.write(f'**> Selected**Team Name = { Team } | Team ID = { Teams[Team] } ')
 				dataset = pandas.DataFrame( data = List_MLB_Alumnis( team_id = Teams[Team] )['data'] )
 				dataset.fillna('TBD', inplace = True)
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB League Standings':
 			try:
-				st.subheader('** MLB League Standings **')
+				st.subheader('**MLB League Standings**')
 				Leagues: dict = { League['League_Name']: int(League['League_ID']) for League in List_MLB_Leagues()['data'] }
 				League: str = col_3.selectbox(label = 'Select MLB League', options = list(Leagues.keys()) )
-				st.write(f'** > Selected ** MLB League Name =  { League } | League ID = { Leagues[League] } ')
+				st.write(f'**> Selected**MLB League Name =  { League } | League ID = { Leagues[League] } ')
 				dataset = pandas.DataFrame( data = List_MLB_League_Standings( league_id = Leagues[League] )['data'] )
 				dataset.fillna('TBD', inplace = True)
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Drafts':
 			try:
-				st.subheader('** MLB Drafts **')
+				st.subheader('**MLB Drafts**')
 				dataset = pandas.DataFrame( data = List_MLB_Drafts()['data'] )
 				dataset.fillna('TBD', inplace = True)
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB Umpires':
 			try:
-				st.subheader('** MLB Umpires **')
+				st.subheader('**MLB Umpires**')
 				dataset = pandas.DataFrame( data = List_MLB_Umpires()['data'] )
 				dataset.fillna('TBD', inplace = True)
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'MLB DataCasters':
 			try:
-				st.subheader('** MLB DataCasters **')
+				st.subheader('**MLB DataCasters**')
 				dataset = pandas.DataFrame( data = List_MLB_Umpires()['data'] )
 				dataset.fillna('TBD', inplace = True)
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 
 	elif CATEGORY == 'NBA League':
 		SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
 
 		if SUB_CATEGORY == 'About NBA':
-			st.subheader('** About NBA **')
+			st.subheader('**About NBA**')
 			st.write('''The National Basketball Association (NBA) is an American Men's Professional Basketball League. It is 
 				Composed of 30 Teams and is One of the 4 Major Professional Sports Leagues in the United States and Canada. 
 				It is Widely Considered to be the Premier Men's Professional Basketball League in the World.''')
@@ -1365,115 +1368,115 @@ def Execute_Main() -> None:
 
 		elif SUB_CATEGORY == 'NBA Teams':
 			try:
-				st.subheader('** NBA Teams **')
+				st.subheader('**NBA Teams**')
 				dataset = pandas.DataFrame( data = NBA_TEAMS )
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
-				st.write('** NBA Teams by Division Split **')
+				st.write('**NBA Teams by Division Split**')
 				pivot_division = pandas.pivot_table(dataset, index = 'Division', 
 					values = 'Team_Name', aggfunc = 'count', fill_value = 0)
 				st.dataframe( data = pivot_division )
-				st.write('** NBA Teams by Conference Split **')
+				st.write('**NBA Teams by Conference Split**')
 				pivot_conference = pandas.pivot_table(dataset, index = 'Conference', 
 					values = 'Team_Name', aggfunc = 'count', fill_value = 0)
 				st.dataframe( data = pivot_conference )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'NBA ScoreBoard 2':
 			try:
-				st.subheader('** NBA Live ScoreBoard 2 **')
+				st.subheader('**NBA Live ScoreBoard 2**')
 				response: dict = requests.get(f'{NBA_BASE_URL_2}/v2/calendar.json').json()
 				Match_Dates: list = [{'Date' : date, 'Games' : games} for date, games in response.items() \
 					if date.isnumeric() and date >= (datetime.now() - timedelta(days=2)).strftime('%Y%m%d') and games > 1]
 				Dates: list = [ data.get('Date') for data in Match_Dates ]
 				game_date: str = col_3.selectbox(label = 'Select Match Date (YYYYMMDD)', options = Dates)
 				dataset = pandas.DataFrame( data = List_NBA_Live_Scoreboard_2( game_date = game_date )['data'] )
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'NBA Players':
 			try:
-				st.subheader('** NBA League Players **')
+				st.subheader('**NBA League Players**')
 				NBA_Teams: list = [ data['Team_Name'] for data in NBA_TEAMS]
 				team_name: str = col_3.selectbox(label = 'Select NBA Team', options = NBA_Teams)
 				dataset = pandas.DataFrame( data = List_NBA_Players( team_name = team_name )['data'] )
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'NBA Player Profile':
 			try:
-				st.subheader('** NBA Player Profile **')
+				st.subheader('**NBA Player Profile**')
 				st.write('Get Player ID by Search Name from Official NBA Stats -> https://stats.nba.com/players/')
 				League_Players: dict = List_NBA_League_Players()['resultSets'][0]
 				player_names: list = [ data[2] for data in League_Players['rowSet'] ]
 				player_name: str = col_1.selectbox(label = 'Choose NBA Player', options = player_names )
 				player_id: int = [ data[0] for data in League_Players['rowSet'] if data[2] == player_name ][0]
-				st.write(f'** NBA Player ID : ** { player_id } ** | Player Name : ** { player_name } ')
+				st.write(f'**NBA Player ID :** { player_id } **| Player Name :** { player_name } ')
 				Player_Profile: dict = List_NBA_Player_Profile( player_id  = player_id )
-				st.write('** NBA Player Awards **')
+				st.write('**NBA Player Awards**')
 				Player_Awards: dict = List_NBA_Player_Awards( player_id  = player_id )['resultSets'][0]
 				Player_Awards = pandas.DataFrame( data = Player_Awards['rowSet'], columns = Player_Awards['headers'] )
-				st.markdown( body = Excel_Downloader( df = Player_Awards ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = Player_Awards ), unsafe_allow_html = True)
 				st.dataframe( data = Player_Awards )
 				titles: list = [ data['name'] for data in Player_Profile['resultSets'] ]
 				sub_category: str = col_2.selectbox(label = 'Select Sub Category', options = titles )
 				for data in Player_Profile['resultSets']:
 					if sub_category == data['name']:
-						st.write('** Sub Category ** : ', sub_category)
+						st.write('**Sub Category**: ', sub_category)
 						data_frame = pandas.DataFrame( data = data['rowSet'], columns = data['headers'] )
-						st.markdown( body = Excel_Downloader( df = data_frame ), unsafe_allow_html = True)
+						st.markdown( body = Data_Downloader( df = data_frame ), unsafe_allow_html = True)
 						st.dataframe( data = data_frame )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'NBA League Players':
 			try:
-				st.subheader('** NBA All League Players **')
+				st.subheader('**NBA All League Players**')
 				League_Players: dict = List_NBA_League_Players()['resultSets'][0]
 				dataset = pandas.DataFrame( data = League_Players['rowSet'], columns = League_Players['headers'] )
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'NBA Coaches':
 			try:
-				st.subheader('** NBA League Coaches **')
+				st.subheader('**NBA League Coaches**')
 				dataset = pandas.DataFrame( data = List_NBA_Coaches()['data'] )
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'NBA ScoreBoard 1':
 			try:
-				st.subheader('** NBA Live ScoreBoard 1 **')
+				st.subheader('**NBA Live ScoreBoard 1**')
 				game_date: str = col_1.date_input(label = 'Choose Game Date', value = datetime.now() )
 				dataset: dict = List_NBA_Live_Scoreboard( game_date = game_date )
 				titles: list = [ data['name'] for data in dataset['resultSets'] ]
 				sub_category: str = col_2.selectbox(label = 'Select Sub Category', options = titles )
 				for data in dataset['resultSets']:
 					if sub_category == data['name']:
-						st.write(f"** Selected Date | Sub Category : ** { game_date.strftime('%d-%b-%Y')  } | { sub_category } ")
+						st.write(f"**Selected Date | Sub Category :** { game_date.strftime('%d-%b-%Y')  } | { sub_category } ")
 						data_frame = pandas.DataFrame( data = data['rowSet'], columns = data['headers'] )
-						st.markdown( body = Excel_Downloader( df = data_frame ), unsafe_allow_html = True)
+						st.markdown( body = Data_Downloader( df = data_frame ), unsafe_allow_html = True)
 						st.dataframe( data = data_frame )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'NBA League Standings':
 			try:
-				st.subheader('** NBA League Standings **')
+				st.subheader('**NBA League Standings**')
 				data_dump: dict = List_NBA_League_Standings()['resultSets'][0]
 				dataset = pandas.DataFrame( data = data_dump['rowSet'], columns = data_dump['headers'] )
 				filter_x = col_1.radio(label = 'Advanced Filter', options = ['ALL', 'Division', 'Conference'])
 				if filter_x == 'ALL':
-					st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+					st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 					st.dataframe( data = dataset )
 				elif filter_x == 'Division':
 					options = default = list( set( dataset.Division.unique() ) )
@@ -1484,11 +1487,11 @@ def Execute_Main() -> None:
 					conference = col_2.multiselect(label = 'Select Conference(s)', options = options, default = default )
 					st.dataframe( dataset[ dataset.Conference.isin(conference) ] )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'NBA All Time Leaders':
 			try:
-				st.subheader('** NBA All Time Leaders **')
+				st.subheader('**NBA All Time Leaders**')
 				headings: dict = {'GPLeaders': 'Games Player', 'PTSLeaders': 'Points', 'ASTLeaders': 'Assists', 'STLLeaders': 'Steals', 
 					'OREBLeaders': 'Offensive Rebounds', 'REBLeaders': 'Rebounds', 'BLKLeaders': 'Blocks', 'TOVLeaders': 'Turnovers',
 					'FGMLeaders': 'Field Goals Made', 'FGALeaders': 'Field Goals Attempted', 'FG_PCTLeaders': 'Field Goals %', 
@@ -1497,16 +1500,16 @@ def Execute_Main() -> None:
 					'FT_PCTLeaders': 'Free Throws %', 'DREBLeaders': 'Defensive Rebounds' }
 				limit: int = col_3.slider(label = 'How Many Players ?', min_value = 0, max_value = 1000, value = 5, step = 5)
 				for _, dataset in enumerate( iterable = List_NBA_Alltime_Leaders( limit = limit )['resultSets'] ):
-					st.write(f"** { headings[ dataset['name'] ] } Leaders **")
+					st.write(f"**{ headings[ dataset['name'] ] } Leaders**")
 					data_frame = pandas.DataFrame( data = dataset['rowSet'], columns = dataset['headers'] )
-					st.markdown( body = Excel_Downloader( df = data_frame ), unsafe_allow_html = True)
+					st.markdown( body = Data_Downloader( df = data_frame ), unsafe_allow_html = True)
 					st.dataframe( data = data_frame )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'NBA Team Yearly Stats':
 			try:
-				st.subheader('** NBA Team Yearly Stats **')
+				st.subheader('**NBA Team Yearly Stats**')
 				League_Standings: dict = List_NBA_League_Standings()['resultSets'][0]
 				NBA_Teams = pandas.DataFrame( data = League_Standings['rowSet'], columns = League_Standings['headers'] )
 				NBA_Teams['Team_Name'] = NBA_Teams['TeamCity'] + ' ' + NBA_Teams['TeamName']
@@ -1516,21 +1519,21 @@ def Execute_Main() -> None:
 					if TEAM_NAME == team_name:
 						data_dump: dict = List_NBA_Team_Yearly_Stats( team_id = TEAM_ID )['resultSets'][0]
 						dataset = pandas.DataFrame( data = data_dump['rowSet'], columns = data_dump['headers'] )
-						st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
+						st.markdown( body = Data_Downloader( dataset ), unsafe_allow_html = True)
 						st.dataframe( data = dataset )
-						st.write(f'** { TEAM_NAME } - Championship Titles Count **')
+						st.write(f'**{ TEAM_NAME } - Championship Titles Count**')
 						pivot_titles = pandas.pivot_table(dataset, index = 'NBA_FINALS_APPEARANCE', 
 							values = 'TEAM_NAME', aggfunc = 'count', fill_value = 0)
 						st.dataframe( data = pivot_titles )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 
 	elif CATEGORY == 'NFL League':
 		SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
 
 		if SUB_CATEGORY == 'About NFL':
-			st.subheader('** About NFL **')
+			st.subheader('**About NFL**')
 			st.write(""" The National Football League (NFL) is a Professional American Football League Consisting 
 				of 32 Teams, Divided Equally Between the National Football Conference (NFC) and the American Football 
 				Conference (AFC). The NFL is One of the Four Major North American Professional Sports Leagues, The 
@@ -1546,48 +1549,48 @@ def Execute_Main() -> None:
 
 		elif SUB_CATEGORY == 'NFL Teams':
 			try:
-				st.subheader('** NFL Teams **')
+				st.subheader('**NFL Teams**')
 				dataset = pandas.DataFrame( data = NFL_TEAMS )
-				st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
-				st.write(f'**> Total NFL Teams = ** { len( dataset ) } ')
+				st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
+				st.write(f'**> Total NFL Teams =** { len( dataset ) } ')
 				st.dataframe( data = dataset )
-				col_1.write('** NBA Teams by Division Split **')
+				col_1.write('**NBA Teams by Division Split**')
 				pivot_division = pandas.pivot_table(dataset, index = 'Division', 
 					values = 'Team_Name', aggfunc = 'count', fill_value = 0)
 				col_1.dataframe( data = pivot_division )
-				col_2.write('** NBA Teams by Conference Split **')
+				col_2.write('**NBA Teams by Conference Split**')
 				pivot_conference = pandas.pivot_table(dataset, index = 'Conference', 
 					values = 'Team_Name', aggfunc = 'count', fill_value = 0)
 				col_2.dataframe( data = pivot_conference )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'NFL Players':
 			try:
-				st.subheader('** NFL Players **')
+				st.subheader('**NFL Players**')
 				dataset = NFL_Players_List()
-				st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( dataset ), unsafe_allow_html = True)
 				team_name: str = col_3.selectbox(label = 'Select NFL Team', options = list( set( dataset['Current Team'].unique() ) ) )
 				st.dataframe( data = dataset[ dataset['Current Team'] == team_name ] )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'NFL Standings':
 			try:
-				st.subheader('** NFL Standings **')
+				st.subheader('**NFL Standings**')
 				category: str = col_3.selectbox(label = 'Select Category', options = ('Division', 'Conference', 'League') )
 				year: int = st.slider(label = 'Select Year', min_value = 1950, max_value = datetime.now().year,
 					value = (datetime.now() - timedelta(days = 365)).year, step = 1 )
 				data_dump = pandas.read_html(f'{NFL_BASE_URL}/standings/{category}/{year}/REG')
 				for dataset in data_dump:
-					st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
+					st.markdown( body = Data_Downloader( dataset ), unsafe_allow_html = True)
 					st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'NFL Team Stats':
 			try:
-				st.subheader('** NFL Team Stats **')
+				st.subheader('**NFL Team Stats**')
 				filter_1: str = col_1.selectbox(label = 'Select Filter 1', options = ('Offense', 'Defence', 'Special-Teams') )
 				filter_2: str = col_2.selectbox(label = 'Select Filter 2', options = ('Passing', 'Rushing', 'Receiving', 'Scoring', 'Downs',
 					'Field-Goals', 'Kickoffs', 'Kickoff-Returns', 'Punt-Returns') )
@@ -1597,14 +1600,14 @@ def Execute_Main() -> None:
 					dataset = pandas.read_html(f'{NFL_BASE_URL}/stats/team-stats/{filter_1}/{filter_2}/{year}/REG/all')[0]
 				except:
 					dataset = pandas.DataFrame( data = [] )
-				st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 		elif SUB_CATEGORY == 'NFL Player Stats':
 			try:
-				st.subheader('** NFL Player Stats **')
+				st.subheader('**NFL Player Stats**')
 				categories: dict = {'Passing': 'PassingYards', 'Rushing': 'RushingYards', 'Receiving': 'ReceivingReceptions',
 					'Fumble': 'DefensiveForcedFumble', 'Tackles': 'DefensiveCombineTackles', 'Interceptions': 'DefensiveInterceptions',
 					'Field-Goals': 'KickingFGMade', 'Kickoffs': 'KickoffTotal', 'Kickoff-Returns': 'KickReturnAverageYards',
@@ -1613,10 +1616,10 @@ def Execute_Main() -> None:
 				filter_2: int = st.slider(label = 'Select Year', min_value = 1950, max_value = datetime.now().year,
 					value = (datetime.now() - timedelta(days = 365)).year, step = 1 )
 				dataset = pandas.read_html(f'{NFL_BASE_URL}/stats/player-stats/category/{filter_1}/{filter_2}/REG/all/{categories[filter_1]}/desc')[0]
-				st.markdown( body = Excel_Downloader( dataset ), unsafe_allow_html = True)
+				st.markdown( body = Data_Downloader( dataset ), unsafe_allow_html = True)
 				st.dataframe( data = dataset )
 			except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 
 	elif CATEGORY == 'Cricket IPL Stats':
@@ -1628,152 +1631,152 @@ def Execute_Main() -> None:
 
 			if SUB_CATEGORY == 'About IPL':
 				try:
-					st.subheader('** About IPL **')
+					st.subheader('**About IPL**')
 					st.write(''' The Indian Premier League (IPL) is a Professional Twenty20 Cricket League in India Contested 
 						During March or April and May of Every Year by 8 Teams Representing 8 Different Cities (or) States in India.
 						The League was Founded by The Board of Control for Cricket in India (BCCI) in 2008. The IPL has an Exclusive 
 						Window in ICC Future Tours Programme. ''')
-					st.subheader('** IPL Teams **')
+					st.subheader('**IPL Teams**')
 					dataset = pandas.DataFrame( data = IPL_TEAMS )
 					st.markdown( body = f"<img src = 'https://miro.medium.com/max/626/0*BAwYmCO5tos8RCO1.png' width = 700 \
 						height = 400>", unsafe_allow_html = True )
 				except Exception as ex:
-					st.error(f'** Error : ** { ex } ')
+					st.error(f'**Error :** { ex } ')
 
 			elif SUB_CATEGORY == 'IPL Winners':
 				try:
-					st.subheader('** IPL Winners **')
+					st.subheader('**IPL Winners**')
 					dataset = pandas.read_html('https://sportskeeda.com/cricket/ipl-winners-list' )[0]
 					new_header = dataset.iloc[0] 
 					dataset = dataset[1 : ] 
 					dataset.columns = new_header
 				except Exception as ex:
-					st.error(f'** Error : ** { ex } ')
+					st.error(f'**Error :** { ex } ')
 
 			elif SUB_CATEGORY == 'Most Runs':	
-				st.subheader('** Most Runs **')
+				st.subheader('**Most Runs**')
 				dataset = pandas.read_html(f'{BASE_URL}/mostRuns?stats_type=batting')[0]
 
 			elif SUB_CATEGORY == 'Most Runs in Over':	
-				st.subheader('** Most Runs in Over **')
+				st.subheader('**Most Runs in Over**')
 				dataset = pandas.read_html(f'{BASE_URL}/mostRunsOver?stats_type=batting')[0]
 
 			elif SUB_CATEGORY == 'Most Fours':	
-				st.subheader('** Most Fours **')
+				st.subheader('**Most Fours**')
 				dataset = pandas.read_html(f'{BASE_URL}/most4s?stats_type=batting')[0]
 			
 			elif SUB_CATEGORY == 'Most Fours (Innings)':	
-				st.subheader('** Most Fours (Innings) **')
+				st.subheader('**Most Fours (Innings)**')
 				dataset = pandas.read_html(f'{BASE_URL}/mostFoursInn?stats_type=batting')[0]
 			
 			elif SUB_CATEGORY == 'Most Sixes':	
-				st.subheader('** Most Sixes **')
+				st.subheader('**Most Sixes**')
 				dataset = pandas.read_html(f'{BASE_URL}/most6s?stats_type=batting')[0]
 			
 			elif SUB_CATEGORY == 'Most Sixes (Innings)':	
-				st.subheader('** Most Sixes (Innings) **')
+				st.subheader('**Most Sixes (Innings)**')
 				dataset = pandas.read_html(f'{BASE_URL}/most6sInn?stats_type=batting')[0]
 			
 			elif SUB_CATEGORY == 'Most Fifties':	
-				st.subheader('** Most Fifties **')
+				st.subheader('**Most Fifties**')
 				dataset = pandas.read_html(f'{BASE_URL}/most50s?stats_type=batting')[0]
 			
 			elif SUB_CATEGORY == 'Most Centuries':	
-				st.subheader('** Most Centuries **')
+				st.subheader('**Most Centuries**')
 				dataset = pandas.read_html(f'{BASE_URL}/most100s?stats_type=batting')[0]
 			
 			elif SUB_CATEGORY == 'Fastest Fifties':	
-				st.subheader('** Fastest Fifties **')
+				st.subheader('**Fastest Fifties**')
 				dataset = pandas.read_html(f'{BASE_URL}/fastestFifties?stats_type=batting')[0]
 			
 			elif SUB_CATEGORY == 'Fastest Centuries':	
-				st.subheader('** Fastest Centuries **')
+				st.subheader('**Fastest Centuries**')
 				dataset = pandas.read_html(f'{BASE_URL}/fastestCenturies?stats_type=batting')[0]
 			
 			elif SUB_CATEGORY == 'Highest Scores':	
-				st.subheader('** Highest Scores **')
+				st.subheader('**Highest Scores**')
 				dataset = pandas.read_html(f'{BASE_URL}/highestScores?stats_type=batting')[0]
 			
 			elif SUB_CATEGORY == 'Highest Scores (Innings)':	
-				st.subheader('** Highest Scores (Innings) **')
+				st.subheader('**Highest Scores (Innings)**')
 				dataset = pandas.read_html(f'{BASE_URL}/highestInnScore?stats_type=batting')[0]
 			
 			elif SUB_CATEGORY == 'Best Batting Average':	
-				st.subheader('** Best Batting Average **')
+				st.subheader('**Best Batting Average**')
 				dataset = pandas.read_html(f'{BASE_URL}/bestbattingaverage?stats_type=batting')[0]
 			
 			elif SUB_CATEGORY == 'Best Batting Strike Rate':	
-				st.subheader('** Best Batting Strike Rate **')
+				st.subheader('**Best Batting Strike Rate**')
 				dataset = pandas.read_html(f'{BASE_URL}/bestStrikeRate?stats_type=batting')[0]
 			
 			elif SUB_CATEGORY == 'Biggest Sixes':	
-				st.subheader('** Biggest Sixes **')
+				st.subheader('**Biggest Sixes**')
 				dataset = pandas.read_html(f'{BASE_URL}/biggest6s?stats_type=batting')[0]
 			
 			elif SUB_CATEGORY == 'Most Wickets':	
-				st.subheader('** Most Wickets **')
+				st.subheader('**Most Wickets**')
 				dataset = pandas.read_html(f'{BASE_URL}/mostWkts?stats_type=bowling')[0]
 			
 			elif SUB_CATEGORY == 'Most Maidens':	
-				st.subheader('** Most Maidens **')
+				st.subheader('**Most Maidens**')
 				dataset = pandas.read_html(f'{BASE_URL}/mostMaidens?stats_type=bowling')[0]
 			
 			elif SUB_CATEGORY == 'Most Dot Balls':	
-				st.subheader('** Most Dot Balls **')
+				st.subheader('**Most Dot Balls**')
 				dataset = pandas.read_html(f'{BASE_URL}/mostDotBalls?stats_type=bowling')[0]
 			
 			elif SUB_CATEGORY == 'Most Dot Balls (Innings)':	
-				st.subheader('** Most Dot Balls (Innings) **')
+				st.subheader('**Most Dot Balls (Innings)**')
 				dataset = pandas.read_html(f'{BASE_URL}/mostDotBallsInn?stats_type=bowling')[0]
 			
 			elif SUB_CATEGORY == 'Best Bowling Average':	
-				st.subheader('** Best Bowling Average **')
+				st.subheader('**Best Bowling Average**')
 				dataset = pandas.read_html(f'{BASE_URL}/bestBowlAvg?stats_type=bowling')[0]
 			
 			elif SUB_CATEGORY == 'Best Bowling Economy':	
-				st.subheader('** Best Bowling Economy **')
+				st.subheader('**Best Bowling Economy**')
 				dataset = pandas.read_html(f'{BASE_URL}/bestBowlEco?stats_type=bowling')[0]
 			
 			elif SUB_CATEGORY == 'Best Bowling Economy (Innings)':	
-				st.subheader('** Best Bowling Economy (Innings) **')
+				st.subheader('**Best Bowling Economy (Innings)**')
 				dataset = pandas.read_html(f'{BASE_URL}/bestBowlEcoInn?stats_type=bowling')[0]
 			
 			elif SUB_CATEGORY == 'Best Bowling Strike Rate':	
-				st.subheader('** Best Bowling Strike Rate **')
+				st.subheader('**Best Bowling Strike Rate**')
 				dataset = pandas.read_html(f'{BASE_URL}/bestBowlingStrikeRate?stats_type=bowling')[0]
 			
 			elif SUB_CATEGORY == 'Best Bowling Strike Rate (Innings)':	
-				st.subheader('** Best Bowling Strike Rate (Innings) **')
+				st.subheader('**Best Bowling Strike Rate (Innings)**')
 				dataset = pandas.read_html(f'{BASE_URL}/bestBowlingStrikeRateInn?stats_type=bowling')[0]
 			
 			elif SUB_CATEGORY == 'Best Bowling Innings':	
-				st.subheader('** Best Bowling Innings **')
+				st.subheader('**Best Bowling Innings**')
 				dataset = pandas.read_html(f'{BASE_URL}/bestBowlInn?stats_type=bowling')[0]
 			
 			elif SUB_CATEGORY == 'Most Hat Tricks':	
-				st.subheader('** Most Hat Tricks **')
+				st.subheader('**Most Hat Tricks**')
 				dataset = pandas.read_html(f'{BASE_URL}/mostHattricks?stats_type=bowling')[0]
 			
 			elif SUB_CATEGORY == 'Most Four Wickets':	
-				st.subheader('** Most Four Wickets **')
+				st.subheader('**Most Four Wickets**')
 				dataset = pandas.read_html(f'{BASE_URL}/mostFourWickets?stats_type=bowling')[0]
 			
 			elif SUB_CATEGORY == 'Most Runs Conceded (Innings)':	
-				st.subheader('** Most Runs Conceded (Innings) **')
+				st.subheader('**Most Runs Conceded (Innings)**')
 				dataset = pandas.read_html(f'{BASE_URL}/mostRunsConcededInn?stats_type=bowling')[0]
 			
 			elif SUB_CATEGORY == 'Fastest Balls':	
-				st.subheader('** Fastest Balls **')
+				st.subheader('**Fastest Balls**')
 				dataset = pandas.read_html(f'{BASE_URL}/fastestballs?stats_type=bowling')[0]
 			
 			elif SUB_CATEGORY == 'Most Valuable Player':	
-				st.subheader('** Most Valuable Player **')
+				st.subheader('**Most Valuable Player**')
 				dataset = pandas.read_html(f'{BASE_URL}/playerPoints?stats_type=bowling')[0]
 			
-			st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+			st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 			st.dataframe( data = dataset )
 		except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 
 	
@@ -1782,57 +1785,57 @@ def Execute_Main() -> None:
 			SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
 
 			if SUB_CATEGORY == 'Test Team Stats':
-				st.write('** Test Team Stats **')
+				st.write('**Test Team Stats**')
 				dataset = pandas.read_html(f'{ICC_BASE_URL}/team-rankings/test')[0]
 
 			elif SUB_CATEGORY == 'Test Player Batting Stats':
-				st.write('** Test Player Batting Stats **')
+				st.write('**Test Player Batting Stats**')
 				dataset = pandas.read_html(f'{ICC_BASE_URL}/player-rankings/test/batting')[0]
 
 			elif SUB_CATEGORY == 'Test Player Bowling Stats':
-				st.write('** Test Player Bowling Stats **')
+				st.write('**Test Player Bowling Stats**')
 				dataset = pandas.read_html(f'{ICC_BASE_URL}/player-rankings/test/bowling')[0]
 
 			elif SUB_CATEGORY == 'Test Player All-Rounder Stats':
-				st.write('** Test Player All-Rounder Stats **')
+				st.write('**Test Player All-Rounder Stats**')
 				dataset = pandas.read_html(f'{ICC_BASE_URL}/player-rankings/test/all-rounder')[0]
 
 			elif SUB_CATEGORY == 'ODI Team Stats':
-				st.write('** ODI Team Stats **')
+				st.write('**ODI Team Stats**')
 				dataset = pandas.read_html(f'{ICC_BASE_URL}/team-rankings/odi')[0]
 
 			elif SUB_CATEGORY == 'ODI Player Batting Stats':
-				st.write('** ODI Player Batting Stats **')
+				st.write('**ODI Player Batting Stats**')
 				dataset = pandas.read_html(f'{ICC_BASE_URL}/player-rankings/odi/batting')[0]
 
 			elif SUB_CATEGORY == 'ODI Player Bowling Stats':
-				st.write('** ODI Player Bowling Stats **')
+				st.write('**ODI Player Bowling Stats**')
 				dataset = pandas.read_html(f'{ICC_BASE_URL}/player-rankings/odi/bowling')[0]
 
 			elif SUB_CATEGORY == 'ODI Player All-Rounder Stats':
-				st.write('** ODI Player All-Rounder Stats **')
+				st.write('**ODI Player All-Rounder Stats**')
 				dataset = pandas.read_html(f'{ICC_BASE_URL}/player-rankings/odi/all-rounder')[0]
 
 			elif SUB_CATEGORY == 'T20I Team Stats':
-				st.write('** T20I Team Stats **')
+				st.write('**T20I Team Stats**')
 				dataset = pandas.read_html(f'{ICC_BASE_URL}/team-rankings/t20i')[0]
 
 			elif SUB_CATEGORY == 'T20I Player Batting Stats':
-				st.write('** T20I Player Batting Stats **')
+				st.write('**T20I Player Batting Stats**')
 				dataset = pandas.read_html(f'{ICC_BASE_URL}/player-rankings/t20i/batting')[0]
 
 			elif SUB_CATEGORY == 'T20I Player Bowling Stats':
-				st.write('** T20I Player Bowling Stats **')
+				st.write('**T20I Player Bowling Stats**')
 				dataset = pandas.read_html(f'{ICC_BASE_URL}/player-rankings/t20i/bowling')[0]
 
 			elif SUB_CATEGORY == 'T20I Player All-Rounder Stats':
-				st.write('** T20I Player All-Rounder Stats **')
+				st.write('**T20I Player All-Rounder Stats**')
 				dataset = pandas.read_html(f'{ICC_BASE_URL}/player-rankings/t20i/all-rounder')[0]
 			
-			st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+			st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 			st.dataframe( data = dataset )
 		except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 
 	elif CATEGORY == 'Cricket WC Stats':
@@ -1840,7 +1843,7 @@ def Execute_Main() -> None:
 			SUB_CATEGORY: str = col_2.selectbox(label = 'Choose Sub Category', options = CATEGORIES[CATEGORY] )
 
 			if SUB_CATEGORY == 'About Cricket World Cup':
-				st.write('** About Cricket World Cup **')
+				st.write('**About Cricket World Cup**')
 				st.write(''' The Cricket World Cup (officially known as ICC Men's Cricket World Cup) is the International 
 					Championship of One Day International (ODI) Cricket. The Event is Organised By The Sport's Governing Body, 
 					The International Cricket Council (ICC), Every 4 Years, with Preliminary Qualification Rounds Leading Up 
@@ -1850,7 +1853,7 @@ def Execute_Main() -> None:
 				dataset = pandas.DataFrame( data = [] )
 
 			elif SUB_CATEGORY == 'ICC Cricket World Cup Winners':
-				st.write('** ICC Cricket World Cup Winners **')
+				st.write('**ICC Cricket World Cup Winners**')
 				dataset = pandas.read_html( requests.get('https://sportskeeda.com/cricket/cricket-world-cup-winners', 
 					headers = { 'User-Agent': UserAgent().random } ).text )[0]
 				new_header = dataset.iloc[0] 
@@ -1858,117 +1861,117 @@ def Execute_Main() -> None:
 				dataset.columns = new_header
 
 			elif SUB_CATEGORY == 'Most Runs':
-				st.write('** Most Runs **')
+				st.write('**Most Runs**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/most-runs')[0]
 
 			elif SUB_CATEGORY == 'Highest Scores':
-				st.write('** Highest Scores **')
+				st.write('**Highest Scores**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/highest-score')[0]
 
 			elif SUB_CATEGORY == 'Best Batting Average':
-				st.write('** Best Batting Average **')
+				st.write('**Best Batting Average**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/best-batting-average')[0]
 
 			elif SUB_CATEGORY == 'Best Batting Strike Rate':
-				st.write('** Best Batting Strike Rate **')
+				st.write('**Best Batting Strike Rate**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/best-batting-strike-rate')[0]
 
 			elif SUB_CATEGORY == 'Best Batting Strike Rate Innings':
-				st.write('** Best Batting Strike Rate Innings **')
+				st.write('**Best Batting Strike Rate Innings**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/best-batting-strike-rate-innings')[0]
 
 			elif SUB_CATEGORY == 'Most Centuries':
-				st.write('** Most Centuries **')
+				st.write('**Most Centuries**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/most-centuries')[0]
 
 			elif SUB_CATEGORY == 'Fastest Centuries':
-				st.write('** Fastest Centuries **')
+				st.write('**Fastest Centuries**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/fastest-centuries')[0]
 
 			elif SUB_CATEGORY == 'Most Fifties':
-				st.write('** Most Fifties **')
+				st.write('**Most Fifties**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/most-fifties')[0]
 
 			elif SUB_CATEGORY == 'Fastest Fifties':
-				st.write('** Fastest Fifties **')
+				st.write('**Fastest Fifties**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/fastest-fifties')[0]
 
 			elif SUB_CATEGORY == 'Most Sixes':
-				st.write('** Most Sixes **')
+				st.write('**Most Sixes**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/most-sixes')[0]
 
 			elif SUB_CATEGORY == 'Most Fours':
-				st.write('** Most Fours **')
+				st.write('**Most Fours**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/most-fours')[0]
 
 			elif SUB_CATEGORY == 'Most Wickets':
-				st.write('** Most Wickets **')
+				st.write('**Most Wickets**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/most-wickets')[0]
 
 			elif SUB_CATEGORY == 'Best Bowling Average':
-				st.write('** Best Bowling Average **')
+				st.write('**Best Bowling Average**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/best-bowling-average')[0]
 
 			elif SUB_CATEGORY == 'Best Bowling Economy':
-				st.write('** Best Bowling Economy **')
+				st.write('**Best Bowling Economy**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/best-bowling-economy')[0]
 
 			elif SUB_CATEGORY == 'Best Bowling Economy Innings':
-				st.write('** Best Bowling Economy Innings **')
+				st.write('**Best Bowling Economy Innings**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/best-bowling-economy-innings')[0]
 
 			elif SUB_CATEGORY == 'Best Bowling Strike Rate':
-				st.write('** Best Bowling Strike Rate **')
+				st.write('**Best Bowling Strike Rate**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/best-bowling-strike-rate')[0]
 
 			elif SUB_CATEGORY == 'Best Bowling Strike Rate Innings':
-				st.write('** Best Bowling Strike Rate Innings **')
+				st.write('**Best Bowling Strike Rate Innings**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/best-bowling-strike-rate-innings')[0]
 
 			elif SUB_CATEGORY == 'Best Bowling Figures':
-				st.write('** Best Bowling Figures **')
+				st.write('**Best Bowling Figures**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/best-bowling-figures')[0]
 
 			elif SUB_CATEGORY == 'Most Maidens':
-				st.write('** Most Maidens **')
+				st.write('**Most Maidens**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/most-maidens')[0]
 
 			elif SUB_CATEGORY == 'Most Dot Balls':
-				st.write('** Most Dot Balls **')
+				st.write('**Most Dot Balls**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/most-dot-balls')[0]
 
 			elif SUB_CATEGORY == 'Most Dot Balls Innings':
-				st.write('** Most Dot Balls Innings **')
+				st.write('**Most Dot Balls Innings**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/most-dot-balls-innings')[0]
 
 			elif SUB_CATEGORY == 'Best Win Percetage':
-				st.write('** Best Win Percetage **')
+				st.write('**Best Win Percetage**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/best-win-percentage')[0]
 
 			elif SUB_CATEGORY == 'Most Wins':
-				st.write('** Most Wins **')
+				st.write('**Most Wins**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/most-wins')[0]
 
 			elif SUB_CATEGORY == 'Most Losses':
-				st.write('** Most Losses **')
+				st.write('**Most Losses**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/most-losses')[0]
 
 			elif SUB_CATEGORY == 'Highest Match Aggregate':
-				st.write('** Highest Match Aggregate **')
+				st.write('**Highest Match Aggregate**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/highest-match-aggregates')[0]
 
 			elif SUB_CATEGORY == 'Largest Victories Runs':
-				st.write('** Largest Victories Runs **')
+				st.write('**Largest Victories Runs**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/largest-victories-runs')[0]
 
 			elif SUB_CATEGORY == 'Largest Victories Wickets':
-				st.write('**  Largest Victories Wickets**')
+				st.write('** Largest Victories Wickets**')
 				dataset = pandas.read_html(f'{ICC_CWC_BASE_URL}/largest-victories-wickets')[0]
 			
-			st.markdown( body = Excel_Downloader( df = dataset ), unsafe_allow_html = True)
+			st.markdown( body = Data_Downloader( df = dataset ), unsafe_allow_html = True)
 			st.dataframe( data = dataset )
 		except Exception as ex:
-				st.error(f'** Error : ** { ex } ')
+				st.error(f'**Error :** { ex } ')
 
 
 #---------------------------------------------------------------------------------------------------------------------------------#
