@@ -5,7 +5,7 @@ opencv-python-headless
 pandas
 pillow
 pytube
-pzbar
+pyzbar
 qrcode
 requests
 streamlit
