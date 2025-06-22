@@ -9,6 +9,7 @@ pytube
 pyzbar
 qrcode
 requests
+sklearn
 streamlit
 youtube-dl
 xlrd
