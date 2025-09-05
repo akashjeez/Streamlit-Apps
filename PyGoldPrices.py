@@ -1,16 +1,8 @@
-'''
-# Historical Data: Gold Price USD = https://in.investing.com/commodities/gold-historical-data
-# Historical Data: USD INR Currency = https://in.investing.com/currencies/usd-inr-historical-data
-'''
-
-import os, sys, json
-import warnings, joblib
+import os, sys, warnings
 import pandas as pd
-import numpy as np
 import streamlit as st
 from datetime import datetime, timedelta
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score
 
 warnings.filterwarnings(action = 'ignore')
 
@@ -20,72 +12,60 @@ st.set_page_config(page_title = 'Gold Price Analysis', page_icon = '🪙', layou
 
 try:
     st.header('Gold Price Analysis')
-    #os.chdir(path = 'C:/PythonExcels/Gold-Price-Prediction')
-    Data_File = 'gold-price-data.csv'
-    #Gold_Price_USD_Model_File = 'Models/Gold_Price_USD_Model.pkl'
-    #USD_INR_Model_file = 'Models/USD_INR_Model.pkl'
-
-    if not os.path.exists(path = Data_File):
-        st.error(body = f'Source Flat File Not Found: { Data_File }')
-        sys.exit(1)
-
-    df = pd.read_csv(filepath_or_buffer = Data_File)
-    df['Date'] = pd.to_datetime(df['Date'])
-    #df['Date'] = pd.to_datetime(df['Date'],  format = '%d-%m-%y').dt.strftime('%Y-%m-%d')
-    df['Actual_Gold_Price_USD'] = df['Actual_Gold_Price_USD'].round(2)
-    df['Actual_USD_INR'] = df['Actual_USD_INR'].round(2)
-    # Calculate Gold_Price_INR and Gold_Price_INR_per_Gram
-    df['Actual_Gold_Price_INR'] = (df['Actual_Gold_Price_USD'] * df['Actual_USD_INR']).round(2)
-    df['Actual_Gold_Price_INR_per_Gram'] = (df['Actual_Gold_Price_INR'] / 31.1035).round(2)
-    st.dataframe(data = df, use_container_width = True)
-
-    ## Sort by date ascending
-    df = df.sort_values('Date').reset_index(drop = True)
-
-    ## Create lag features (previous day's values)
-    df['Gold_Price_USD_prev'] = df['Actual_Gold_Price_USD'].shift(1)
-    df['USD_INR_prev'] = df['Actual_USD_INR'].shift(1)
-    df = df.dropna().reset_index(drop = True)
-
-    ## Features and targets
-    X = df[['Gold_Price_USD_prev', 'USD_INR_prev']]
-    y_usd = df['Actual_Gold_Price_USD']
-    y_inr = df['Actual_USD_INR']
-
-    ## Split into train/test for scoring
-    split_idx = int(len(df) * 0.8)
-    X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
-    y_usd_train, y_usd_test = y_usd.iloc[:split_idx], y_usd.iloc[split_idx:]
-    y_inr_train, y_inr_test = y_inr.iloc[:split_idx], y_inr.iloc[split_idx:]
-
-    ## Train new models
-    model_usd = LinearRegression().fit(X_train, y_usd_train)
-    model_inr = LinearRegression().fit(X_train, y_inr_train)
-
-    ##Evaluate new models
-    # usd_score = r2_score(y_usd_test, model_usd.predict(X_test))
-    # inr_score = r2_score(y_inr_test, model_inr.predict(X_test))
-
-    # st.write(f'R2 Score for Gold Price USD Model: {usd_score:.2f}')
-    # st.write(f'R2 Score for USD to INR Model: {inr_score:.2f}')
-
-    ## Start with the latest known values
-    last_usd = df.iloc[-1]['Actual_Gold_Price_USD']
-    last_inr = df.iloc[-1]['Actual_USD_INR']
-    last_date = pd.to_datetime(df['Date'].max())
-
-    features = np.array([[last_usd, last_inr]])
-    pred_usd: float = (model_usd.predict(features)[0]).round(2)
-    pred_inr: float = (model_inr.predict(features)[0]).round(2)
-    pred_gold_inr: float = (pred_usd * pred_inr).round(2)
-    pred_gold_inr_per_gram: float = (pred_gold_inr / 31.1035).round(2)
-
-    st.write('Predictions for tomorrow:')
-    st.write(f'Date = { last_date + timedelta(days = 1):%Y-%m-%d }')
-    st.write(f'Predicted Gold Price in USD = { pred_usd }')
-    st.write(f'Predicted USD to INR = { pred_inr }')
-    st.write(f'Predicted Gold Price in INR = { pred_gold_inr }')
-    st.write(f'Predicted Gold Price in INR per Gram = { pred_gold_inr_per_gram }')
     
+    #Data_File: str = 'C:/PythonExcels/Gold-Price-Historical.csv'
+    Data_File: str = 'https://raw.githubusercontent.com/akashjeez/Streamlit-Apps/main/Gold-Price-Historical.csv'
+    df = pd.read_csv(filepath_or_buffer = Data_File)
+
+    if 'Date' in df.columns:
+        df['Date'] = pd.to_datetime(arg = df['Date'], format = '%Y-%m-%d', errors = 'coerce')
+
+    original_df = df.copy()
+
+    Start_Date = st.date_input(label = 'Select Start Date', 
+        value = datetime.now() - timedelta(days = 30),
+        min_value = df['Date'].min(), max_value = df['Date'].max() 
+    )
+
+    df = df[ (df['Date'] >= pd.to_datetime( Start_Date )) ]
+
+    if len( df ) > 0:
+        c_1, c_2 = st.columns([2, 3])
+        df = df.sort_values('Date').reset_index(drop = True)
+        c_1.dataframe(data = df, use_container_width = True)
+        c_2.line_chart(data = df, x = 'Date', y = ['24K_Gold', '22K_Gold'], width = 0, height = 500)
+
+        ## Machine Learning: Prediction for Next 7 Days.
+        DAYS: int = 7
+        c_1.subheader(body = f'Predicted Gold Price for Next {DAYS} Days')
+        original_df = original_df.sort_values('Date').reset_index(drop=True)
+        original_df['24K_prev'] = original_df['24K_Gold'].shift(1)
+        original_df['22K_prev'] = original_df['22K_Gold'].shift(1)
+        original_df = original_df.dropna()
+        X = original_df[['24K_prev', '22K_prev']]
+        y_24k = original_df['24K_Gold']
+        y_22k = original_df['22K_Gold']
+        model_24k = LinearRegression().fit(X, y_24k)
+        model_22k = LinearRegression().fit(X, y_22k)
+        model_22k_score: float = round(model_22k.score(X, y_22k) * 100, 2)
+        model_24k_score: float = round(model_24k.score(X, y_24k) * 100, 2)
+        c_1.write(f' Model Score for 24 K = { model_24k_score } % || 22K : { model_22k_score } %')
+        predictions: int = []
+        last_24k = original_df['24K_Gold'].iloc[-1]
+        last_22k = original_df['22K_Gold'].iloc[-1]
+        last_date = original_df['Date'].max()
+        for i in range(int(DAYS)):
+            pred_24k = model_24k.predict([[last_24k, last_22k]])[0]
+            pred_22k = model_22k.predict([[last_24k, last_22k]])[0]
+            pred_date = last_date + timedelta(days = i + 1)
+            predictions.append({'Date': pred_date, '24K_Gold': int(pred_24k), '22K_Gold': int(pred_22k) })
+            last_24k = pred_24k
+            last_22k = pred_22k
+        pred_df = pd.DataFrame(data = predictions)
+        c_1.dataframe(data = pred_df)
+        c_2.line_chart(data = pred_df, x = 'Date', y = ['24K_Gold', '22K_Gold'], width = 0, height = 500)
+    else:
+        st.warning(body = f' No Data Found for the Selected Date Range: { Start_Date } ')
+
 except Exception as ex:
     st.error(body = f'Error : { ex }')
