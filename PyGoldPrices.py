@@ -22,23 +22,23 @@ try:
 
     original_df = df.copy()
 
-    Start_Date = st.date_input(label = 'Select Start Date', 
+    c_1, c_2 = st.columns([2, 2])
+    Start_Date = c_1.date_input(label = 'Select Start Date', 
         value = datetime.now() - timedelta(days = 30),
         min_value = df['Date'].min(), max_value = df['Date'].max() 
     )
+    Predict_Days: int = c_2.slider(label = 'Select Days to Predict', min_value = 1, max_value = 30, value = 7, step = 1)
 
     df = df[ (df['Date'] >= pd.to_datetime( Start_Date )) ]
 
     if len( df ) > 0:
         c_1, c_2 = st.columns([2, 3])
-        df = df.sort_values('Date').reset_index(drop = True)
+        df = df.sort_values('Date', ascending = False).reset_index(drop = True)
         c_1.dataframe(data = df, use_container_width = True)
         c_2.line_chart(data = df, x = 'Date', y = ['24K_Gold', '22K_Gold'], width = 0, height = 500)
 
-        ## Machine Learning: Prediction for Next 7 Days.
-        DAYS: int = 7
-        c_1.subheader(body = f'Predicted Gold Price for Next {DAYS} Days')
-        original_df = original_df.sort_values('Date').reset_index(drop=True)
+        c_1.subheader(body = f'Predicted Gold Price for Next {Predict_Days} Days')
+        original_df = original_df.sort_values('Date').reset_index(drop = True)
         original_df['24K_prev'] = original_df['24K_Gold'].shift(1)
         original_df['22K_prev'] = original_df['22K_Gold'].shift(1)
         original_df = original_df.dropna()
@@ -54,7 +54,7 @@ try:
         last_24k = original_df['24K_Gold'].iloc[-1]
         last_22k = original_df['22K_Gold'].iloc[-1]
         last_date = original_df['Date'].max()
-        for i in range(int(DAYS)):
+        for i in range(int(Predict_Days)):
             pred_24k = model_24k.predict([[last_24k, last_22k]])[0]
             pred_22k = model_22k.predict([[last_24k, last_22k]])[0]
             pred_date = last_date + timedelta(days = i + 1)
