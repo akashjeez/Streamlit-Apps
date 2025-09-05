@@ -1,21 +1,9 @@
 # Streamlit-Apps
 Python Streamlit Data Apps
 
-### App 1 | Sports League
+### App 1 | Gold Price Prediction
 
--> NBA BasketBall
-
--> NFL FootBall
-
--> MLB BaseBall
-
--> ICC Rankings
-
--> Cricket IPL League
-
--> ICC Cricket World Cup
-
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://akashjeez-pysportz.streamlit.app)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://akashjeez-pygoldprices.streamlit.app/)
 
 ### App 2 | OpenCV
 
